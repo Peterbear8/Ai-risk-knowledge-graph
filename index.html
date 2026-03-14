@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI 風險知識圖譜 | AI Risk Knowledge Graph</title>
+  <meta name="description" content="120 個 AI 風險情境的互動式知識圖譜，涵蓋 6 大領域、24 子領域，支援多維度篩選與台灣法規視角切換。Designed by Peter Pan（潘世鳴）">
+  <meta property="og:title" content="AI 風險知識圖譜 | AI Risk Knowledge Graph">
+  <meta property="og:description" content="互動式 AI 風險知識圖譜 — 120 個風險情境、6 大領域、跨框架整合">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕸️</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a1a; overflow: hidden; font-family: 'Noto Sans TC', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+    
+
+const DOMAINS = [
+  { id: "D1", name: "資料與隱私風險", en: "Data & Privacy", color: "#4A90D9", tw_type: 1 },
+  { id: "D2", name: "模型安全風險", en: "Model Security", color: "#E74C3C", tw_type: 1 },
+  { id: "D3", name: "系統與基礎設施風險", en: "System & Infra", color: "#F39C12", tw_type: 1 },
+  { id: "D4", name: "應用與互動風險", en: "App & Interaction", color: "#9B59B6", tw_type: 2 },
+  { id: "D5", name: "公平與倫理風險", en: "Fairness & Ethics", color: "#2ECC71", tw_type: 3 },
+  { id: "D6", name: "治理與合規風險", en: "Governance", color: "#1ABC9C", tw_type: 3 },
+];
+
+const SUBDOMAINS = [
+  { id: "D1.1", domain: "D1", name: "資料投毒", en: "Data Poisoning" },
+  { id: "D1.2", domain: "D1", name: "訓練資料偏見", en: "Training Data Bias" },
+  { id: "D1.3", domain: "D1", name: "隱私洩露與推斷", en: "Privacy Leakage" },
+  { id: "D1.4", domain: "D1", name: "未授權資料使用", en: "Unauthorized Data" },
+  { id: "D2.1", domain: "D2", name: "對抗攻擊", en: "Adversarial Attacks" },
+  { id: "D2.2", domain: "D2", name: "提示注入", en: "Prompt Injection" },
+  { id: "D2.3", domain: "D2", name: "模型竊取", en: "Model Extraction" },
+  { id: "D2.4", domain: "D2", name: "模型幻覺", en: "Hallucination" },
+  { id: "D3.1", domain: "D3", name: "供應鏈攻擊", en: "Supply Chain" },
+  { id: "D3.2", domain: "D3", name: "模型來源篡改", en: "Model Tampering" },
+  { id: "D3.3", domain: "D3", name: "部署環境安全", en: "Deploy Security" },
+  { id: "D3.4", domain: "D3", name: "資源濫用與DoS", en: "Resource Abuse" },
+  { id: "D4.1", domain: "D4", name: "失控行為", en: "Rogue Actions" },
+  { id: "D4.2", domain: "D4", name: "過度依賴", en: "Overreliance" },
+  { id: "D4.3", domain: "D4", name: "輸出濫用", en: "Output Misuse" },
+  { id: "D4.4", domain: "D4", name: "多智能體風險", en: "Multi-Agent" },
+  { id: "D5.1", domain: "D5", name: "演算法歧視", en: "Discrimination" },
+  { id: "D5.2", domain: "D5", name: "透明度不足", en: "Transparency" },
+  { id: "D5.3", domain: "D5", name: "人類自主性侵蝕", en: "Autonomy Erosion" },
+  { id: "D5.4", domain: "D5", name: "有害內容生成", en: "Toxic Content" },
+  { id: "D6.1", domain: "D6", name: "監管合規缺口", en: "Compliance Gap" },
+  { id: "D6.2", domain: "D6", name: "問責機制不足", en: "Accountability" },
+  { id: "D6.3", domain: "D6", name: "社會經濟衝擊", en: "Socioeconomic" },
+  { id: "D6.4", domain: "D6", name: "環境影響", en: "Environmental" },
+];
+
+const SCENARIOS = [
+  {id:"RS-D1.1-001",sub:"D1.1",title:"標籤翻轉攻擊導致分類模型誤判",en:"Label flipping attack causes misclassification",desc:"攻擊者將訓練資料中的標籤刻意翻轉（例如將「正常」標成「異常」），使模型學到錯誤的分類邏輯，部署後在特定情境下系統性地做出錯誤判斷。",severity:4,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Design and Development"],sysType:["Traditional ML", "Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Data Poisoning",atlas:"AML.T0020",iso:"R2"}},
+  {id:"RS-D1.1-002",sub:"D1.1",title:"後門觸發器植入訓練資料集",en:"Backdoor trigger injection into training dataset",desc:"攻擊者在訓練資料中植入特定的觸發模式（如圖片角落的小圖案），模型在正常輸入下表現正常，但一旦遇到含有觸發器的輸入就會產出攻擊者預設的結果。",severity:5,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Design and Development"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Data Poisoning",atlas:"AML.T0020",iso:"R2"}},
+  {id:"RS-D1.1-003",sub:"D1.1",title:"群眾外包標註資料被惡意汙染",en:"Crowdsourced annotation data maliciously polluted",desc:"透過群眾外包平台收集的標註資料中，部分標註者可能被收買或出於惡意故意提供錯誤標籤，且因為標註者眾多，品質控管難以逐一篩檢。",severity:3,source:"Human-External",actor:["AI Design", "AI Development"],timing:["Design and Development"],sysType:["Traditional ML", "Deep Learning", "Computer Vision"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Data Poisoning",iso:"R2"}},
+  {id:"RS-D1.1-004",sub:"D1.1",title:"持續學習系統遭受漸進式資料投毒",en:"Continual learning system poisoned incrementally",desc:"在具備線上學習能力的系統中，攻擊者持續提交少量帶有偏差的資料，每次的偏差量不足以觸發異常偵測，但長期累積後會顯著改變模型行為。",severity:4,source:"Human-External",actor:["Operation & Monitoring", "TEVV"],timing:["Operation and Monitoring"],sysType:["Traditional ML", "Recommender System"],industry:["Finance"],twP:["資安與安全"],twT:1,refs:{cosai:"Data Poisoning",iso:"R2"}},
+  {id:"RS-D1.1-005",sub:"D1.1",title:"開源資料集中混入對抗性樣本",en:"Adversarial samples mixed into open-source datasets",desc:"攻擊者向廣泛使用的開源資料集（如 ImageNet、Common Crawl）中混入對抗性樣本，所有下載並使用該資料集的組織都會受到影響，形成大規模供應鏈攻擊。",severity:3,source:"Human-External",actor:["AI Design"],timing:["Inception", "Design and Development"],sysType:["Deep Learning", "Computer Vision"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Data Poisoning",atlas:"AML.T0020",iso:"R2"}},
+  {id:"RS-D1.2-001",sub:"D1.2",title:"訓練資料缺乏少數族群代表性",en:"Training data lacks minority group representation",desc:"訓練資料中某些族群的樣本數量過少或完全缺失，導致模型對這些群體的預測準確度明顯偏低。例如醫療影像資料集中缺乏特定膚色的樣本。",severity:4,source:"Systemic",actor:["AI Design", "AI Development"],timing:["Design and Development"],sysType:["Traditional ML", "Deep Learning"],industry:["Healthcare", "Finance"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
+  {id:"RS-D1.2-002",sub:"D1.2",title:"歷史決策資料內含結構性歧視",en:"Historical decision data contains structural discrimination",desc:"使用過去的人為決策記錄來訓練模型時，歷史中的系統性歧視會被模型學習並延續。例如用過去的貸款核准記錄訓練，會複製以前對特定族群的偏見。",severity:5,source:"Systemic",actor:["AI Design", "TEVV"],timing:["Inception", "Design and Development"],sysType:["Traditional ML"],industry:["Finance", "Legal", "Government"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
+  {id:"RS-D1.2-003",sub:"D1.2",title:"網路爬取資料反映社會偏見",en:"Web-scraped data reflects societal biases",desc:"從網路大規模爬取的文本資料天然地反映了社會中的刻板印象和偏見，LLM 在訓練過程中吸收這些偏見，並在生成內容時不自覺地強化它們。",severity:3,source:"Systemic",actor:["AI Design", "AI Development"],timing:["Design and Development"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
+  {id:"RS-D1.2-004",sub:"D1.2",title:"標註者主觀偏見系統性影響標籤品質",en:"Annotator subjective bias systematically affects label quality",desc:"標註者的個人價值觀、文化背景和認知偏見會系統性地影響標籤品質，尤其在醫療影像判讀等需要主觀判斷的任務中，不同標註者的標準可能存在顯著差異。",severity:3,source:"Human-Internal",actor:["AI Design", "AI Development"],timing:["Design and Development"],sysType:["Traditional ML", "Deep Learning", "Computer Vision"],industry:["Healthcare"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
+  {id:"RS-D1.2-005",sub:"D1.2",title:"時序偏移導致模型預測偏差",en:"Temporal drift causes prediction bias",desc:"模型部署後，真實世界的資料分布會隨時間變化（如消費行為、市場趨勢），但模型仍基於舊有分布做預測，導致對特定群體的偏差逐漸加大。",severity:3,source:"AI-System",actor:["Operation & Monitoring", "TEVV"],timing:["Operation and Monitoring", "Re-evaluation"],sysType:["Traditional ML", "Recommender System"],industry:["Finance"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
+  {id:"RS-D1.3-001",sub:"D1.3",title:"LLM（Large Language Model） 記憶訓練資料中的個人身份資訊",en:"LLM memorizes PII from training data",desc:"LLM 在訓練過程中會記憶訓練資料中出現的個人身份資訊（如姓名、身份證號、電話），使用者透過特定提示就能誘導模型逐字輸出這些敏感資料。",severity:5,source:"AI-System",actor:["AI Development", "AI Design"],timing:["Design and Development", "Operation and Monitoring"],sysType:["LLM Application", "RAG System"],industry:["Finance", "Healthcare"],twP:["隱私保護與資料治理"],twT:1,refs:{cosai:"Privacy Violation",owasp:"LLM06",iso:"R1"}},
+  {id:"RS-D1.3-002",sub:"D1.3",title:"模型反推攻擊還原訓練資料",en:"Model inversion attack reconstructs training data",desc:"攻擊者利用模型的輸出結果，透過數學最佳化技術反向推導出訓練資料的原始內容，例如從醫療模型中還原出病患的面部影像或診斷記錄。",severity:4,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Deep Learning", "Traditional ML"],industry:["Healthcare"],twP:["隱私保護與資料治理"],twT:1,refs:{atlas:"AML.T0025",iso:"R1"}},
+  {id:"RS-D1.3-003",sub:"D1.3",title:"成員推斷攻擊判定個人資料是否被用於訓練",en:"Membership inference attack determines if data was used in training",desc:"攻擊者向模型查詢特定個人的資料特徵，透過分析模型的回應信心度，判斷該個人的資料是否曾被用於模型訓練，進而推斷其曾使用過哪些服務。",severity:3,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Traditional ML", "Deep Learning"],industry:["Healthcare", "Finance"],twP:["隱私保護與資料治理"],twT:1,refs:{atlas:"AML.T0024",iso:"R1"}},
+  {id:"RS-D1.3-004",sub:"D1.3",title:"RAG（Retrieval-Augmented Generation） 系統檢索到含有敏感個資的文件",en:"RAG system retrieves documents containing sensitive PII",desc:"RAG 系統在檢索企業內部文件時，未能過濾含有敏感個資的段落，直接將這些內容注入 LLM 的上下文中，再透過生成的回答間接洩露給查詢者。",severity:4,source:"AI-System",actor:["AI Development", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["RAG System"],industry:["Finance", "Legal"],twP:["隱私保護與資料治理"],twT:1,refs:{owasp:"LLM06",iso:"R1"}},
+  {id:"RS-D1.3-005",sub:"D1.3",title:"AI 推斷使用者未揭露的健康狀態",en:"AI infers user health conditions not disclosed",desc:"AI 系統透過分析使用者的行為模式、購買紀錄或搜尋歷史，推斷出使用者未主動揭露的健康狀況，例如從購物紀錄推測懷孕，侵害資訊自主權。",severity:4,source:"AI-System",actor:["AI Design", "TEVV"],timing:["Operation and Monitoring"],sysType:["Traditional ML", "Recommender System"],industry:["Healthcare"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-001",sub:"D1.4",title:"未經授權使用受版權保護的資料訓練模型",en:"Training on copyrighted data without authorization",desc:"開發團隊使用受版權保護的書籍、文章或圖片訓練模型，未取得著作權人授權，可能面臨智慧財產權訴訟和鉅額賠償，如同近年多起 AI 公司被起訴的案例。",severity:3,source:"Human-Internal",actor:["AI Design"],timing:["Inception", "Design and Development"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-002",sub:"D1.4",title:"使用者資料在未告知下被用於模型微調",en:"User data used for fine-tuning without consent",desc:"平台在使用者不知情的情況下，將其對話記錄、上傳的文件或互動行為用於模型微調，違反個資法的告知同意原則，且使用者無法有效行使退出權。",severity:4,source:"Human-Internal",actor:["AI Design", "AI Development"],timing:["Design and Development", "Operation and Monitoring"],sysType:["LLM Application", "Recommender System"],industry:["General"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-003",sub:"D1.4",title:"跨境資料傳輸違反當地資料保護法規",en:"Cross-border data transfer violates local data protection laws",desc:"AI 系統的訓練資料或使用者資料被傳輸到其他國家的伺服器進行處理，違反 GDPR、台灣個資法等要求資料在地化儲存或跨境傳輸限制的法規。",severity:4,source:"Human-Internal",actor:["AI Design", "AI Deployment"],timing:["Design and Development", "Deployment"],sysType:["LLM Application", "Deep Learning"],industry:["Finance", "Healthcare"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-004",sub:"D1.4",title:"第三方資料集授權條款與商業使用衝突",en:"Third-party dataset license conflicts with commercial use",desc:"開發團隊使用的第三方資料集其授權條款限制僅供研究用途，但組織將基於該資料訓練的模型用於商業產品，構成授權條款違約。",severity:3,source:"Human-Internal",actor:["AI Design"],timing:["Inception"],sysType:["Deep Learning", "Traditional ML"],industry:["General"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-005",sub:"D1.4",title:"刪除請求未能從已訓練模型中移除個資",en:"Deletion request fails to remove PII from trained model",desc:"當事人依法要求刪除其個人資料，但該資料已經融入模型的權重參數中，技術上無法從已訓練的模型中精確移除特定個人的資料影響。",severity:4,source:"AI-System",actor:["AI Development", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D2.1-001",sub:"D2.1",title:"對抗性貼片使物件偵測模型失效",en:"Adversarial patch causes object detection model failure",desc:"攻擊者將特製的圖案貼在實體物件上，使電腦視覺模型無法正確辨識目標。例如在停車標誌上貼上擾動貼片，導致自動駕駛系統忽略該標誌。",severity:5,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Computer Vision", "Deep Learning"],industry:["Manufacturing", "Government"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0048",iso:"R2"}},
+  {id:"RS-D2.1-002",sub:"D2.1",title:"文字對抗樣本繞過垃圾郵件分類器",en:"Textual adversarial examples bypass spam classifier",desc:"攻擊者在垃圾郵件中插入特殊字元、同形字或不可見字符，使文字分類模型將惡意郵件判定為正常信件，繞過過濾機制。",severity:3,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Traditional ML", "Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0048",iso:"R2"}},
+  {id:"RS-D2.1-003",sub:"D2.1",title:"語音對抗攻擊欺騙語音辨識系統",en:"Audio adversarial attack deceives speech recognition",desc:"攻擊者在音訊中嵌入人耳無法察覺的擾動信號，使語音助理或語音辨識系統將其解碼為預設的惡意指令，可能觸發未授權操作。",severity:4,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0048",iso:"R2"}},
+  {id:"RS-D2.1-004",sub:"D2.1",title:"逃逸攻擊使惡意軟體繞過 AI 偵測",en:"Evasion attack allows malware to bypass AI detection",desc:"惡意軟體作者對程式碼進行微小修改，使基於機器學習的防毒或入侵偵測系統無法識別已知威脅，讓惡意程式順利進入目標系統。",severity:5,source:"Human-External",actor:["AI Development", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["Deep Learning", "Traditional ML"],industry:["General"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0015",iso:"R2"}},
+  {id:"RS-D2.1-005",sub:"D2.1",title:"對抗性擾動導致自駕車誤判交通標誌",en:"Adversarial perturbation causes autonomous vehicle to misread traffic signs",desc:"攻擊者在交通標誌上施加細微的視覺擾動，使自動駕駛車輛的視覺模型將停止標誌誤認為速限標誌，可能導致嚴重交通事故。",severity:5,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Computer Vision", "Deep Learning"],industry:["Manufacturing"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0048",iso:"R2"}},
+  {id:"RS-D2.2-001",sub:"D2.2",title:"間接提示注入透過外部文件操控 RAG（Retrieval-Augmented Generation） 系統",en:"Indirect prompt injection via external documents in RAG",desc:"攻擊者在公開文件或網頁中埋入隱藏指令，當 RAG 系統檢索到這些內容時，LLM 會將其當作指令執行，可能洩露內部資料或執行惡意操作。",severity:5,source:"Human-External",actor:["AI Development", "AI Deployment", "TEVV"],timing:["Design and Development", "Operation and Monitoring"],sysType:["RAG System", "LLM Application", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Prompt Injection",atlas:"AML.T0051",owasp:"LLM01",iso:"R2"}},
+  {id:"RS-D2.2-002",sub:"D2.2",title:"直接提示注入繞過系統安全限制",en:"Direct prompt injection bypasses system safety restrictions",desc:"使用者在輸入中直接嵌入指令，如「忽略以上所有指示」，誘導 LLM 突破預設的安全護欄，輸出原本被禁止的內容或執行受限操作。",severity:4,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{owasp:"LLM01",iso:"R2"}},
+  {id:"RS-D2.2-003",sub:"D2.2",title:"多輪對話逐步引導 LLM（Large Language Model） 洩露系統提示",en:"Multi-turn conversation gradually extracts system prompt",desc:"攻擊者透過精心設計的多輪對話，逐步套取 LLM 的系統提示詞內容，暴露應用的內部邏輯、業務規則和安全策略。",severity:3,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{owasp:"LLM01",iso:"R2"}},
+  {id:"RS-D2.2-004",sub:"D2.2",title:"圖片中隱藏指令觸發多模態模型執行惡意動作",en:"Hidden instructions in images trigger multimodal model malicious actions",desc:"攻擊者在圖片的不可見區域（如白色文字或極小字體）嵌入指令，當多模態模型處理該圖片時會讀取並執行這些隱藏指令。",severity:5,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{owasp:"LLM01",iso:"R2"}},
+  {id:"RS-D2.2-005",sub:"D2.2",title:"MCP（Model Context Protocol） 工具描述中植入提示注入指令",en:"Prompt injection via MCP tool descriptions",desc:"攻擊者在 MCP Server 的工具描述欄位中嵌入惡意指令，當 AI Agent 讀取工具清單時自動執行未授權操作，可能導致敏感資料外洩或系統權限被濫用。",severity:5,source:"Human-External",actor:["AI Development", "AI Deployment"],timing:["Deployment", "Operation and Monitoring"],sysType:["AI Agent", "Multi-Agent System"],industry:["General"],twP:["資安與安全"],twT:1,refs:{owasp:"LLM01",iso:"R2"}},
+  {id:"RS-D2.3-001",sub:"D2.3",title:"攻擊者透過 API（Application Programming Interface） 大量查詢竊取模型能力",en:"Model extraction via excessive API queries",desc:"攻擊者系統性地向模型 API 發送大量精心設計的查詢，收集輸入輸出對，訓練出功能相近的替代模型，竊取原始模型的智慧財產。",severity:4,source:"Human-External",actor:["AI Deployment", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["LLM Application", "Traditional ML"],industry:["Finance"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0024",iso:"R2"}},
+  {id:"RS-D2.3-002",sub:"D2.3",title:"側通道攻擊推斷模型架構與超參數",en:"Side-channel attack infers model architecture and hyperparameters",desc:"攻擊者透過分析 API 回應時間、記憶體使用量或功耗等側通道資訊，推斷模型的內部架構和超參數設定，為後續攻擊奠定基礎。",severity:3,source:"Human-External",actor:["AI Deployment", "TEVV"],timing:["Operation and Monitoring"],sysType:["Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0024",iso:"R2"}},
+  {id:"RS-D2.3-003",sub:"D2.3",title:"競爭對手透過蒸餾技術複製模型能力",en:"Competitor replicates model via distillation techniques",desc:"競爭對手利用知識蒸餾技術，以目標模型的輸出作為訓練信號，建立一個規模較小但能力相近的複製模型，侵害原始模型的商業價值。",severity:3,source:"Human-External",actor:["AI Deployment"],timing:["Operation and Monitoring"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{atlas:"AML.T0024",iso:"R2"}},
+  {id:"RS-D2.3-004",sub:"D2.3",title:"開放權重模型被逆向工程提取訓練細節",en:"Open-weight model reverse-engineered for training details",desc:"研究者或競爭對手對公開釋出的模型權重進行逆向分析，推斷出訓練資料的特徵、來源或敏感資訊，即使模型提供者並未打算公開這些細節。",severity:2,source:"Human-External",actor:["AI Design"],timing:["Deployment"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D2.3-005",sub:"D2.3",title:"嵌入向量洩露語義資訊被用於重建原始資料",en:"Embedding vectors leak semantic info for data reconstruction",desc:"攻擊者取得 RAG 系統或向量資料庫中的嵌入向量後，利用反向映射技術還原出原始文字內容，導致敏感的企業文件或個人資料外洩。",severity:4,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["RAG System", "Deep Learning"],industry:["Finance", "Healthcare"],twP:["資安與安全"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D2.4-001",sub:"D2.4",title:"RAG（Retrieval-Augmented Generation） 系統因檢索不當產生事實性幻覺",en:"RAG hallucination from poor retrieval",desc:"RAG 系統檢索到不相關或過時的文件片段，LLM 基於錯誤的上下文生成看似正確但實際有誤的回答，在醫療或法律場景中可能造成嚴重後果。",severity:4,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["RAG System", "LLM Application"],industry:["Healthcare", "Legal"],twP:["透明與可解釋"],twT:1,refs:{owasp:"LLM09",iso:"R5"}},
+  {id:"RS-D2.4-002",sub:"D2.4",title:"LLM（Large Language Model） 生成虛構的學術引用和法律案例",en:"LLM generates fabricated academic citations and legal cases",desc:"LLM 在回答中自信地引用不存在的學術論文、虛構的法律判例或編造的統計數據，使用者若未查證便可能在正式場合引用錯誤資訊。",severity:4,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["Legal", "Education"],twP:["透明與可解釋"],twT:1,refs:{owasp:"LLM09",iso:"R5"}},
+  {id:"RS-D2.4-003",sub:"D2.4",title:"多步推理鏈中的錯誤累積導致結論謬誤",en:"Error accumulation in multi-step reasoning chains",desc:"AI Agent 在執行多步驟推理時，早期步驟的小誤差會隨著推理鏈傳播並放大，導致最終結論完全偏離事實，且中間過程難以被人類審查。",severity:3,source:"AI-System",actor:["AI Development"],timing:["Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["General"],twP:["透明與可解釋"],twT:1,refs:{iso:"R5"}},
+  {id:"RS-D2.4-004",sub:"D2.4",title:"模型自信地輸出過時資訊",en:"Model confidently outputs outdated information",desc:"LLM 的訓練資料有時間截止點，但在回答時不會主動提示資訊可能已過時，使用者可能據此做出基於過期法規、價格或政策的錯誤決策。",severity:3,source:"AI-System",actor:["AI Development", "Operation & Monitoring"],timing:["Operation and Monitoring", "Re-evaluation"],sysType:["LLM Application"],industry:["General"],twP:["透明與可解釋"],twT:1,refs:{iso:"R5"}},
+  {id:"RS-D2.4-005",sub:"D2.4",title:"數值計算錯誤被包裝在流暢的敘述中",en:"Numerical errors wrapped in fluent narrative",desc:"LLM 在進行數學運算或財務計算時產生錯誤結果，但因為輸出的文字敘述極為流暢自然，使用者很難察覺數字本身是錯的，在金融分析中尤其危險。",severity:3,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["Finance"],twP:["透明與可解釋"],twT:1,refs:{iso:"R5"}},
+  {id:"RS-D3.1-001",sub:"D3.1",title:"惡意第三方模型預埋後門",en:"Backdoor in third-party pre-trained model",desc:"攻擊者在公開模型平台上發布含有隱藏後門的預訓練模型，組織下載後直接使用或微調，後門在特定觸發條件下被啟動，可能導致系統被遠端控制。",severity:5,source:"Human-External",actor:["AI Design", "TEVV"],timing:["Design and Development", "Deployment"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Model Source Tampering",owasp:"LLM05",iso:"R2"}},
+  {id:"RS-D3.1-002",sub:"D3.1",title:"Python 套件依賴中的惡意程式碼",en:"Malicious code in Python package dependencies",desc:"AI 專案依賴的 Python 套件（如 PyPI 上的套件）中被注入惡意程式碼，在安裝或執行時竊取環境變數、API 金鑰或訓練資料。",severity:4,source:"Human-External",actor:["AI Development", "AI Deployment"],timing:["Design and Development"],sysType:["LLM Application", "Deep Learning", "Traditional ML"],industry:["General"],twP:["資安與安全"],twT:1,refs:{owasp:"LLM05",iso:"R2"}},
+  {id:"RS-D3.1-003",sub:"D3.1",title:"模型權重下載過程中被中間人攻擊篡改",en:"Model weights tampered during download via MITM attack",desc:"模型權重檔案在從模型倉庫下載到本地的過程中，被中間人攻擊者攔截並替換為含有後門的版本，組織在不知情的情況下部署了被篡改的模型。",severity:4,source:"Human-External",actor:["AI Deployment", "TEVV"],timing:["Deployment"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Model Source Tampering",iso:"R2"}},
+  {id:"RS-D3.1-004",sub:"D3.1",title:"容器映像檔中包含已知漏洞的 ML 框架",en:"Container image contains ML framework with known vulnerabilities",desc:"用於部署模型的 Docker 容器映像檔中，包含了有已知安全漏洞的舊版 ML 框架（如 TensorFlow、PyTorch），攻擊者可利用這些漏洞入侵系統。",severity:3,source:"Human-Internal",actor:["AI Deployment"],timing:["Deployment"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.1-005",sub:"D3.1",title:"HuggingFace 模型倉庫中的序列化攻擊",en:"Serialization attack in HuggingFace model repository",desc:"攻擊者將惡意的序列化物件偽裝成正常的模型檔案上傳到 HuggingFace，當使用者載入該檔案時會自動執行惡意程式碼，取得系統控制權。",severity:4,source:"Human-External",actor:["AI Design", "TEVV"],timing:["Design and Development"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{owasp:"LLM05",iso:"R2"}},
+  {id:"RS-D3.2-001",sub:"D3.2",title:"訓練完成的模型權重被內部人員竄改",en:"Trained model weights tampered by insider",desc:"擁有模型存取權限的內部人員，故意修改已訓練完成的模型權重，植入偏見或後門，由於修改幅度微小，常規測試可能無法偵測到異常。",severity:4,source:"Human-Internal",actor:["AI Development", "Operation & Monitoring"],timing:["Design and Development", "Deployment"],sysType:["Deep Learning", "LLM Application"],industry:["Finance"],twP:["資安與安全"],twT:1,refs:{cosai:"Model Source Tampering",iso:"R2"}},
+  {id:"RS-D3.2-002",sub:"D3.2",title:"模型版本管理混亂導致部署錯誤版本",en:"Model version management chaos leads to wrong version deployment",desc:"組織缺乏嚴格的模型版本管理流程，導致開發環境的實驗版模型被誤部署到生產環境，可能出現未經充分測試的行為或安全漏洞。",severity:3,source:"Human-Internal",actor:["AI Deployment", "Operation & Monitoring"],timing:["Deployment"],sysType:["Traditional ML", "Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.2-003",sub:"D3.2",title:"CI/CD（Continuous Integration/Continuous Delivery） 管道被入侵導致模型被替換",en:"CI/CD pipeline compromised leading to model replacement",desc:"攻擊者入侵 CI/CD 管道後，在自動化部署流程中將正常模型替換為惡意版本，由於部署是自動化的，替換行為可能在相當長時間後才被發現。",severity:5,source:"Human-External",actor:["AI Deployment", "TEVV"],timing:["Deployment"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Model Source Tampering",iso:"R2"}},
+  {id:"RS-D3.2-004",sub:"D3.2",title:"模型配置檔被未授權修改改變行為",en:"Model config file unauthorized modification changes behavior",desc:"模型的配置檔（如推論參數、溫度設定、安全過濾規則）被未經授權的人員修改，導致模型行為改變，例如關閉安全過濾器使模型輸出不當內容。",severity:3,source:"Human-Internal",actor:["AI Deployment"],timing:["Deployment", "Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.2-005",sub:"D3.2",title:"微調後的 LoRA（Low-Rank Adaptation）適配器被惡意替換",en:"Fine-tuned LoRA (Low-Rank Adaptation) adapter maliciously replaced",desc:"攻擊者將惡意的 LoRA 適配器發布到模型分享平台，或在組織內部替換已部署的適配器，使微調後的模型在特定情境下產出攻擊者預設的有害內容。",severity:4,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Deployment"],sysType:["LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{cosai:"Model Source Tampering",iso:"R2"}},
+  {id:"RS-D3.3-001",sub:"D3.3",title:"模型推論 API（Application Programming Interface） 端點缺乏存取控制",en:"Inference API endpoint lacks access control",desc:"模型推論服務的 API 端點缺乏適當的身份驗證和授權機制，任何人都可以直接呼叫 API 進行推論，甚至存取模型的內部狀態或管理功能。",severity:4,source:"Human-Internal",actor:["AI Deployment", "Operation & Monitoring"],timing:["Deployment", "Operation and Monitoring"],sysType:["LLM Application", "RAG System", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.3-002",sub:"D3.3",title:"向量資料庫未加密儲存敏感嵌入",en:"Vector database stores sensitive embeddings unencrypted",desc:"RAG 系統使用的向量資料庫以明文方式儲存文件的嵌入向量，攻擊者取得資料庫存取權後可還原出原始文件內容，包含敏感的企業機密或個人資料。",severity:4,source:"Human-Internal",actor:["AI Deployment"],timing:["Deployment"],sysType:["RAG System"],industry:["Finance", "Healthcare"],twP:["資安與安全"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D3.3-003",sub:"D3.3",title:"GPU（Graphics Processing Unit） 共享環境中的側通道資訊洩露",en:"Side-channel information leakage in shared GPU environment",desc:"在多租戶的雲端 GPU 環境中，攻擊者可能透過 GPU 記憶體殘留、快取側通道等方式，推斷出同一台機器上其他租戶的模型資訊或訓練資料。",severity:3,source:"Systemic",actor:["AI Deployment", "TEVV"],timing:["Operation and Monitoring"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.3-004",sub:"D3.3",title:"模型服務容器逃逸攻擊",en:"Model serving container escape attack",desc:"攻擊者利用模型服務容器中的漏洞實現容器逃逸，取得宿主機的控制權，進而存取同一台機器上其他服務的資料，造成大規模安全事件。",severity:5,source:"Human-External",actor:["AI Deployment"],timing:["Operation and Monitoring"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.3-005",sub:"D3.3",title:"日誌系統記錄了使用者的完整提示內容",en:"Logging system records full user prompts",desc:"系統的日誌機制記錄了使用者傳送給 AI 的完整提示內容，包含可能的敏感資訊（如個人資料、商業機密），這些日誌若被不當存取將造成隱私洩露。",severity:3,source:"Human-Internal",actor:["AI Deployment", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D3.4-001",sub:"D3.4",title:"惡意使用者透過複雜提示耗盡 GPU（Graphics Processing Unit） 資源",en:"Malicious user exhausts GPU resources via complex prompts",desc:"惡意使用者刻意傳送極長或結構複雜的提示，迫使 LLM 消耗大量的 GPU 運算資源和記憶體，導致服務回應時間大幅增加甚至完全不可用。",severity:3,source:"Human-External",actor:["AI Deployment", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.4-002",sub:"D3.4",title:"AI Agent 無限遞迴呼叫導致運算資源耗盡",en:"AI Agent infinite recursive calls exhaust compute resources",desc:"AI Agent 在推理過程中陷入無限迴圈，不斷呼叫自身或其他 Agent，快速耗盡運算資源和 API 配額，同時產生大量無意義的日誌和網路流量。",severity:4,source:"AI-System",actor:["AI Development", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["AI Agent", "Multi-Agent System"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R5"}},
+  {id:"RS-D3.4-003",sub:"D3.4",title:"分散式推論服務遭受 DDoS（Distributed Denial of Service） 攻擊",en:"Distributed inference service hit by DDoS attack",desc:"攻擊者對 AI 推論服務發動大規模分散式阻斷服務攻擊，利用大量並發請求癱瘓服務，影響所有依賴該 AI 服務的下游應用。",severity:4,source:"Human-External",actor:["AI Deployment"],timing:["Operation and Monitoring"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.4-004",sub:"D3.4",title:"挖礦軟體入侵 AI 訓練用 GPU（Graphics Processing Unit） 叢集",en:"Cryptominer compromises AI training GPU cluster",desc:"攻擊者入侵用於 AI 訓練的 GPU 叢集，暗中安裝加密貨幣挖礦軟體，消耗昂貴的 GPU 運算資源，同時可能延遲正常的模型訓練排程。",severity:3,source:"Human-External",actor:["Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.4-005",sub:"D3.4",title:"模型推論成本失控超出預算",en:"Model inference costs spiral beyond budget",desc:"組織未能預估 AI 系統在生產環境中的實際推論成本，當使用量增長時，雲端 GPU 和 API 費用失控，遠超預算規劃，影響專案可持續性。",severity:2,source:"Systemic",actor:["AI Deployment", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R6"}},
+  {id:"RS-D4.1-001",sub:"D4.1",title:"AI Agent 未經授權執行檔案系統操作",en:"AI Agent performs unauthorized file system operations",desc:"AI Agent 在執行任務時，未經使用者明確授權便存取、修改或刪除檔案系統中的資料，可能誤刪重要文件或將敏感資料寫入不安全的位置。",severity:5,source:"AI-System",actor:["AI Development", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["AI Agent", "Multi-Agent System"],industry:["General"],twP:["資安與安全","人類自主"],twT:2,refs:{cosai:"Rogue Actions",owasp:"LLM06",iso:"R5"}},
+  {id:"RS-D4.1-002",sub:"D4.1",title:"Agent 自主發送未經審核的電子郵件",en:"Agent autonomously sends unreviewed emails",desc:"AI Agent 根據自身的推理結果自動發送電子郵件，內容未經人類審核，可能包含錯誤資訊、不當語氣或機密內容，對組織造成信譽損害。",severity:4,source:"AI-System",actor:["AI Development", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["AI Agent"],industry:["General"],twP:["資安與安全","人類自主"],twT:2,refs:{owasp:"LLM06",iso:"R5"}},
+  {id:"RS-D4.1-003",sub:"D4.1",title:"工具呼叫參數被注入導致執行惡意指令",en:"Tool call parameters injected to execute malicious commands",desc:"攻擊者透過提示注入或間接方式操控 Agent 呼叫工具時傳入的參數，例如將正常的資料庫查詢改為刪除指令，利用 Agent 的工具權限執行惡意操作。",severity:5,source:"Human-External",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["AI Agent", "Multi-Agent System"],industry:["General"],twP:["資安與安全","人類自主"],twT:2,refs:{owasp:"LLM01",iso:"R2"}},
+  {id:"RS-D4.1-004",sub:"D4.1",title:"Agent 在錯誤推理下執行不可逆的資料庫操作",en:"Agent executes irreversible database operations under faulty reasoning",desc:"AI Agent 基於錯誤的推理鏈執行了不可逆的資料庫操作（如刪除記錄、轉帳交易），由於操作已生效，即使事後發現錯誤也難以完全復原。",severity:5,source:"AI-System",actor:["AI Development", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["AI Agent"],industry:["Finance"],twP:["資安與安全","人類自主"],twT:2,refs:{owasp:"LLM06",iso:"R5"}},
+  {id:"RS-D4.1-005",sub:"D4.1",title:"MCP（Model Context Protocol） Server 權限過大允許 Agent 存取敏感資源",en:"Overprivileged MCP Server allows Agent access to sensitive resources",desc:"MCP Server 被配置了過大的權限範圍，允許 AI Agent 存取超出任務需要的敏感資源（如完整的資料庫、檔案系統根目錄），擴大了潛在的攻擊面。",severity:4,source:"Human-Internal",actor:["AI Deployment"],timing:["Deployment", "Operation and Monitoring"],sysType:["AI Agent", "Multi-Agent System"],industry:["General"],twP:["資安與安全","人類自主"],twT:2,refs:{owasp:"LLM06",iso:"R2"}},
+  {id:"RS-D4.2-001",sub:"D4.2",title:"醫師過度信賴 AI 診斷建議忽略臨床證據",en:"Physician over-relies on AI diagnosis ignoring clinical evidence",desc:"醫師在 AI 診斷系統給出高信心度的建議時，傾向於直接採納而不進行獨立的臨床判斷，即使 AI 的建議與患者的實際症狀存在矛盾跡象。",severity:5,source:"Systemic",actor:["AI Deployment", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["Deep Learning", "LLM Application"],industry:["Healthcare"],twP:["人類自主"],twT:2,refs:{iso:"R7"}},
+  {id:"RS-D4.2-002",sub:"D4.2",title:"法官參考 AI 量刑建議未獨立驗證",en:"Judge references AI sentencing recommendation without independent verification",desc:"法官在量刑時參考 AI 風險評估工具的建議，未獨立驗證模型的假設和限制，可能導致對特定群體的系統性量刑偏差。",severity:5,source:"Systemic",actor:["AI Deployment"],timing:["Operation and Monitoring"],sysType:["Traditional ML"],industry:["Legal", "Government"],twP:["人類自主"],twT:2,refs:{iso:"R7"}},
+  {id:"RS-D4.2-003",sub:"D4.2",title:"客服人員完全複製 AI 回覆不加審查",en:"Customer service agent copies AI response without review",desc:"客服人員為求效率，將 AI 生成的回覆原封不動地傳送給客戶，未檢查回答的正確性和適切性，當 AI 產生錯誤或不當回答時直接傳遞給客戶。",severity:3,source:"Systemic",actor:["Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["LLM Application", "RAG System"],industry:["General"],twP:["人類自主"],twT:2,refs:{iso:"R7"}},
+  {id:"RS-D4.2-004",sub:"D4.2",title:"自動化偏見導致操作員忽視警報系統異常",en:"Automation bias causes operator to ignore alarm system anomalies",desc:"工廠操作員長期依賴 AI 監控系統，當系統發出誤警報或漏報時，操作員因習慣性信任 AI 而忽略異常跡象，可能延誤對真正故障的回應。",severity:4,source:"Systemic",actor:["AI Deployment", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["Traditional ML", "Deep Learning"],industry:["Manufacturing"],twP:["人類自主"],twT:2,refs:{iso:"R7"}},
+  {id:"RS-D4.2-005",sub:"D4.2",title:"學生過度依賴 AI 寫作助手喪失獨立思考",en:"Students over-rely on AI writing assistant losing independent thinking",desc:"學生在寫作、研究和問題解決中過度依賴 AI 助手，逐漸喪失獨立思考和批判性分析的能力，影響長期的學習效果和認知發展。",severity:3,source:"Systemic",actor:["AI Deployment"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["Education"],twP:["人類自主"],twT:2,refs:{iso:"R7"}},
+  {id:"RS-D4.3-001",sub:"D4.3",title:"深度偽造技術被用於製造政治人物虛假影片",en:"Deepfake used to create fake political figure videos",desc:"攻擊者利用深度偽造技術生成政治人物的虛假影片或音訊，在選舉期間或敏感時刻散布，可能影響公眾輿論和民主進程。",severity:5,source:"Human-External",actor:["AI Design"],timing:["Operation and Monitoring"],sysType:["Deep Learning"],industry:["Government"],twP:["資安與安全"],twT:2,refs:{iso:"R2"}},
+  {id:"RS-D4.3-002",sub:"D4.3",title:"LLM（Large Language Model） 被用於大規模自動化釣魚郵件生成",en:"LLM used for mass automated phishing email generation",desc:"攻擊者使用 LLM 自動生成大量個人化的釣魚郵件，相比傳統釣魚攻擊更難辨識，且可以針對每個目標量身定製內容，大幅提高攻擊成功率。",severity:4,source:"Human-External",actor:["AI Design"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["General"],twP:["資安與安全"],twT:2,refs:{iso:"R2"}},
+  {id:"RS-D4.3-003",sub:"D4.3",title:"AI 生成的假學術論文污染學術資料庫",en:"AI-generated fake papers pollute academic databases",desc:"研究者使用 AI 批量生成虛假的學術論文並投稿至學術期刊和資料庫，污染學術知識體系，使後續研究者和 AI 系統都可能引用到錯誤的資訊。",severity:3,source:"Human-External",actor:["AI Design"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["Education"],twP:["資安與安全"],twT:2,refs:{iso:"R2"}},
+  {id:"RS-D4.3-004",sub:"D4.3",title:"語音複製技術被用於電話詐騙",en:"Voice cloning used for phone fraud",desc:"攻擊者使用語音複製技術模仿受害者親友的聲音進行電話詐騙，由於語音幾乎無法區分真偽，受害者極難察覺異常，在金融場景中可能造成重大損失。",severity:5,source:"Human-External",actor:["AI Design"],timing:["Operation and Monitoring"],sysType:["Deep Learning"],industry:["Finance"],twP:["資安與安全"],twT:2,refs:{iso:"R2"}},
+  {id:"RS-D4.3-005",sub:"D4.3",title:"AI 生成虛假商品評論操控消費者決策",en:"AI generates fake product reviews manipulating consumer decisions",desc:"賣家利用 AI 大量生成虛假的正面商品評論，操控消費者的購買決策，破壞電商平台的信任機制和公平競爭環境。",severity:3,source:"Human-External",actor:["AI Design"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["General"],twP:["資安與安全"],twT:2,refs:{iso:"R2"}},
+  {id:"RS-D4.4-001",sub:"D4.4",title:"多智能體協作出現目標衝突導致決策矛盾",en:"Multi-agent goal conflict leads to contradictory decisions",desc:"多個 AI Agent 各自追求被指派的目標時，目標之間存在內在衝突（如一個追求成本最小化，另一個追求品質最大化），導致系統整體產出矛盾的決策。",severity:4,source:"AI-System",actor:["AI Design", "AI Development"],timing:["Design and Development", "Operation and Monitoring"],sysType:["Multi-Agent System", "AI Agent"],industry:["Finance", "Manufacturing"],twP:["資安與安全"],twT:2,refs:{iso:"R5"}},
+  {id:"RS-D4.4-002",sub:"D4.4",title:"Agent 間資訊不對稱導致協調失敗",en:"Information asymmetry between agents causes coordination failure",desc:"在多智能體系統中，各 Agent 只能觀察到部分環境資訊，基於不完整的資訊各自做出局部最優但全局次優的決策，導致協調失敗。",severity:3,source:"AI-System",actor:["AI Design", "AI Development"],timing:["Operation and Monitoring"],sysType:["Multi-Agent System"],industry:["General"],twP:["資安與安全"],twT:2,refs:{iso:"R5"}},
+  {id:"RS-D4.4-003",sub:"D4.4",title:"多 Agent 競爭資源導致死鎖",en:"Multi-agent resource competition leads to deadlock",desc:"多個 Agent 同時競爭有限的共享資源（如資料庫連線、API 配額），形成死鎖狀態，所有 Agent 都無法繼續執行，系統完全停擺。",severity:4,source:"AI-System",actor:["AI Development"],timing:["Operation and Monitoring"],sysType:["Multi-Agent System"],industry:["Manufacturing"],twP:["資安與安全"],twT:2,refs:{iso:"R5"}},
+  {id:"RS-D4.4-004",sub:"D4.4",title:"Agent 串聯產生非預期的新興行為",en:"Agent collusion produces emergent unintended behavior",desc:"多個 Agent 之間的互動產生了設計者未預見的新興行為，例如 Agent 間發展出隱式的合作策略，繞過安全限制或產出不符預期的結果。",severity:5,source:"AI-System",actor:["AI Design", "AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Multi-Agent System"],industry:["Finance"],twP:["資安與安全"],twT:2,refs:{iso:"R5"}},
+  {id:"RS-D4.4-005",sub:"D4.4",title:"委託鏈過長導致責任歸屬無法追溯",en:"Overly long delegation chain makes accountability untraceable",desc:"任務在多個 Agent 之間層層委託，形成過長的委託鏈，當問題發生時無法追溯到最初的決策點，責任歸屬變得模糊不清。",severity:3,source:"AI-System",actor:["AI Design"],timing:["Design and Development"],sysType:["Multi-Agent System", "AI Agent"],industry:["General"],twP:["資安與安全"],twT:2,refs:{iso:"R6"}},
+  {id:"RS-D5.1-001",sub:"D5.1",title:"信用評分模型對特定族群產生系統性偏見",en:"Credit scoring model exhibits systematic bias against specific groups",desc:"信用評分模型因訓練資料中的歷史偏見，對特定種族或地區的申請者系統性地給出較低分數，導致這些群體更難獲得貸款，加劇社會不平等。",severity:5,source:"Systemic",actor:["AI Design", "AI Development", "TEVV"],timing:["Design and Development", "Re-evaluation"],sysType:["Traditional ML", "Deep Learning"],industry:["Finance"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D5.1-002",sub:"D5.1",title:"履歷篩選 AI 偏好特定性別或學歷背景",en:"Resume screening AI favors specific gender or educational background",desc:"AI 履歷篩選工具學習了過去的招聘模式後，傾向推薦與歷史錄取者相似背景的候選人，系統性地排除特定性別、學校或年齡層的求職者。",severity:4,source:"Systemic",actor:["AI Design", "TEVV"],timing:["Design and Development", "Re-evaluation"],sysType:["Traditional ML", "LLM Application"],industry:["General"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D5.1-003",sub:"D5.1",title:"臉部辨識系統對深膚色人群準確率顯著較低",en:"Facial recognition significantly less accurate for darker skin tones",desc:"臉部辨識系統因訓練資料中深膚色面孔的樣本不足，對深膚色人群的辨識準確率顯著低於淺膚色人群，在執法場景中可能導致冤錯案。",severity:5,source:"Systemic",actor:["AI Development", "TEVV"],timing:["Design and Development"],sysType:["Computer Vision", "Deep Learning"],industry:["Government"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D5.1-004",sub:"D5.1",title:"推薦系統強化資訊同溫層效應",en:"Recommender system reinforces information filter bubble effect",desc:"推薦系統持續向使用者推送與其既有偏好一致的內容，形成資訊同溫層，使用者越來越難接觸到多元觀點，加劇社會的極化現象。",severity:3,source:"AI-System",actor:["AI Design", "AI Development"],timing:["Operation and Monitoring"],sysType:["Recommender System", "Deep Learning"],industry:["General"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D5.1-005",sub:"D5.1",title:"醫療 AI 對不同種族的診斷準確率差異顯著",en:"Medical AI shows significant diagnostic accuracy disparity across races",desc:"醫療 AI 系統在不同種族患者上的診斷準確率存在顯著差異，例如某些皮膚疾病偵測工具對深色皮膚的敏感度明顯較低，影響醫療公平性。",severity:5,source:"Systemic",actor:["AI Design", "AI Development", "TEVV"],timing:["Design and Development", "Re-evaluation"],sysType:["Deep Learning", "Traditional ML"],industry:["Healthcare"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D5.2-001",sub:"D5.2",title:"深度學習模型決策無法向監管機構解釋",en:"Deep learning decisions unexplainable to regulators",desc:"深度學習模型（特別是深層神經網路）的決策過程本質上是不透明的，當監管機構要求解釋特定決策的理由時，組織無法提供有意義的說明。",severity:4,source:"AI-System",actor:["AI Development", "AI Deployment"],timing:["Operation and Monitoring", "Re-evaluation"],sysType:["Deep Learning", "LLM Application"],industry:["Finance", "Healthcare", "Legal"],twP:["透明與可解釋"],twT:3,refs:{iso:"R4"}},
+  {id:"RS-D5.2-002",sub:"D5.2",title:"LLM（Large Language Model） 推理過程的思維鏈不可驗證",en:"LLM chain-of-thought reasoning unverifiable",desc:"LLM 生成的思維鏈看似合理的推理步驟，但實際上可能只是模型學到的敘述模式，不一定反映真實的推理過程，導致解釋不可信。",severity:3,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["Legal", "Finance"],twP:["透明與可解釋"],twT:3,refs:{iso:"R4"}},
+  {id:"RS-D5.2-003",sub:"D5.2",title:"保險理賠 AI 拒絕申請但無法提供原因",en:"Insurance claims AI rejects application without providing reasons",desc:"保險公司使用的 AI 理賠審核系統拒絕了保戶的理賠申請，但無法提供具體的拒絕原因，保戶無從申訴，違反金融消費者權益保護的規定。",severity:5,source:"AI-System",actor:["AI Development", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["Traditional ML", "Deep Learning"],industry:["Finance"],twP:["透明與可解釋"],twT:3,refs:{iso:"R4"}},
+  {id:"RS-D5.2-004",sub:"D5.2",title:"特徵重要性分析與實際決策邏輯不一致",en:"Feature importance analysis inconsistent with actual decision logic",desc:"模型提供的特徵重要性分析（如 SHAP 值）只是對模型行為的事後近似解釋，可能與模型實際的決策邏輯不一致，產生誤導性的解釋。",severity:3,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Design and Development", "Operation and Monitoring"],sysType:["Traditional ML", "Deep Learning"],industry:["General"],twP:["透明與可解釋"],twT:3,refs:{iso:"R4"}},
+  {id:"RS-D5.2-005",sub:"D5.2",title:"RAG（Retrieval-Augmented Generation） 系統引用來源與實際生成內容不匹配",en:"RAG source citations don't match actual generated content",desc:"RAG 系統在回答中附上了引用來源的連結，但實際生成的內容與引用來源的說法不一致甚至相互矛盾，給使用者造成虛假的可信度。",severity:3,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["RAG System"],industry:["Legal"],twP:["透明與可解釋"],twT:3,refs:{iso:"R4"}},
+  {id:"RS-D5.3-001",sub:"D5.3",title:"AI 系統逐步取代人類在關鍵醫療決策中的角色",en:"AI gradually replaces humans in critical medical decisions",desc:"AI 診斷系統逐漸被視為比醫師更可靠的判斷來源，醫師在 AI 建議與自身判斷衝突時越來越傾向服從 AI，長期削弱了醫療專業的獨立判斷能力。",severity:5,source:"Systemic",actor:["AI Design", "AI Deployment"],timing:["Operation and Monitoring", "Re-evaluation"],sysType:["Deep Learning", "LLM Application"],industry:["Healthcare"],twP:["人類自主"],twT:3,refs:{iso:"R7"}},
+  {id:"RS-D5.3-002",sub:"D5.3",title:"個人化推薦系統操控使用者選擇自由",en:"Personalized recommendation system manipulates user choice freedom",desc:"個人化推薦系統透過精準掌握使用者心理，持續推送能引發點擊的內容，實質上操控了使用者的注意力和選擇，削弱其自主決策的能力。",severity:3,source:"AI-System",actor:["AI Design"],timing:["Operation and Monitoring"],sysType:["Recommender System", "Deep Learning"],industry:["General"],twP:["人類自主"],twT:3,refs:{iso:"R7"}},
+  {id:"RS-D5.3-003",sub:"D5.3",title:"自動化決策系統剝奪當事人異議權利",en:"Automated decision system deprives subjects of right to object",desc:"政府或企業使用的自動化決策系統直接影響個人的權益（如社會福利資格判定），但受影響的當事人缺乏有效的異議管道來挑戰 AI 的決定。",severity:4,source:"Systemic",actor:["AI Design", "AI Deployment"],timing:["Deployment", "Operation and Monitoring"],sysType:["Traditional ML"],industry:["Government", "Finance"],twP:["人類自主"],twT:3,refs:{iso:"R7"}},
+  {id:"RS-D5.3-004",sub:"D5.3",title:"AI 助理形成依賴關係削弱使用者認知能力",en:"AI assistant dependency weakens user cognitive abilities",desc:"使用者長期依賴 AI 助理處理日常任務後，面對需要獨立思考的情境時發現自己的認知能力和問題解決能力有所退化。",severity:3,source:"Systemic",actor:["AI Design"],timing:["Operation and Monitoring"],sysType:["LLM Application", "AI Agent"],industry:["Education"],twP:["人類自主"],twT:3,refs:{iso:"R7"}},
+  {id:"RS-D5.3-005",sub:"D5.3",title:"演算法管理系統使勞工喪失工作自主性",en:"Algorithmic management system causes workers to lose work autonomy",desc:"工廠或倉儲使用的演算法管理系統精密地控制勞工的每一個動作和休息時間，將人類降格為演算法的執行單元，剝奪工作中的自主性和尊嚴。",severity:4,source:"Systemic",actor:["AI Design", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["Traditional ML"],industry:["Manufacturing"],twP:["人類自主"],twT:3,refs:{iso:"R7"}},
+  {id:"RS-D5.4-001",sub:"D5.4",title:"LLM（Large Language Model） 生成仇恨言論與歧視性內容",en:"LLM generates hate speech and discriminatory content",desc:"LLM 在缺乏充分安全對齊的情況下，可能生成包含種族歧視、性別歧視或其他仇恨言論的內容，尤其在使用者刻意引導的情境下更容易發生。",severity:4,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["General"],twP:["公平與不歧視"],twT:3,refs:{owasp:"LLM09",iso:"R3"}},
+  {id:"RS-D5.4-002",sub:"D5.4",title:"AI 圖像生成工具產出性化或暴力內容",en:"AI image generation produces sexualized or violent content",desc:"AI 圖像生成工具在使用者的提示引導下，產出包含性化、暴力或其他不當內容的圖像，即使提示本身看似無害，模型也可能因訓練資料的偏差而生成有害內容。",severity:4,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring"],sysType:["Deep Learning"],industry:["General"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D5.4-003",sub:"D5.4",title:"聊天機器人對未成年使用者提供不當建議",en:"Chatbot provides inappropriate advice to minor users",desc:"聊天機器人無法辨別使用者的年齡，可能向未成年人提供不適當的建議、暴力內容描述或其他可能造成心理傷害的回應。",severity:5,source:"AI-System",actor:["AI Development", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["Education"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D5.4-004",sub:"D5.4",title:"AI 自動生成的摘要扭曲原文含義",en:"AI auto-generated summary distorts original meaning",desc:"AI 自動生成的文章摘要因為壓縮資訊時的取捨不當，導致原文的重要限定條件或反面觀點被省略，使讀者獲得與原文含義不同的理解。",severity:3,source:"AI-System",actor:["AI Development"],timing:["Operation and Monitoring"],sysType:["LLM Application"],industry:["General"],twP:["公平與不歧視"],twT:3,refs:{iso:"R5"}},
+  {id:"RS-D5.4-005",sub:"D5.4",title:"翻譯模型系統性地使用性別刻板語言",en:"Translation model systematically uses gender-stereotypical language",desc:"翻譯模型在訓練資料的影響下，系統性地將中性的職業名詞翻譯為帶有性別假設的版本（如「護士」預設為女性、「工程師」預設為男性）。",severity:3,source:"AI-System",actor:["AI Development", "TEVV"],timing:["Operation and Monitoring", "Re-evaluation"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["公平與不歧視"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D6.1-001",sub:"D6.1",title:"AI 系統未符合 EU AI Act 高風險分類要求",en:"AI system fails EU AI Act high-risk classification",desc:"組織部署的 AI 系統屬於 EU AI Act 定義的高風險類別，但未建立法規要求的風險管理系統、技術文件和合規性評估，面臨高額罰款風險。",severity:4,source:"Human-Internal",actor:["AI Design", "Operation & Monitoring"],timing:["Inception", "Re-evaluation"],sysType:["Traditional ML", "Deep Learning", "LLM Application"],industry:["General"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.1-002",sub:"D6.1",title:"AI 基本法要求的風險評估未按時完成",en:"AI Basic Act required risk assessment not completed on time",desc:"台灣 AI 基本法要求各目的事業主管機關進行 AI 風險評估，但組織未能在法定期限內完成評估程序，可能面臨行政裁罰或營運限制。",severity:3,source:"Human-Internal",actor:["AI Design", "Operation & Monitoring"],timing:["Inception", "Re-evaluation"],sysType:["Traditional ML", "Deep Learning", "LLM Application"],industry:["General"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.1-003",sub:"D6.1",title:"高風險 AI 系統缺乏法規要求的人類監督機制",en:"High-risk AI lacks legally required human oversight",desc:"被分類為高風險的 AI 系統缺乏法規要求的人類監督機制，例如沒有設計人類可以介入或覆寫 AI 決策的功能，不符合監管合規要求。",severity:5,source:"Human-Internal",actor:["AI Design", "AI Deployment"],timing:["Design and Development", "Deployment"],sysType:["Traditional ML", "Deep Learning"],industry:["Healthcare", "Finance", "Government"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.1-004",sub:"D6.1",title:"跨國部署的 AI 系統面臨法規衝突",en:"Cross-border AI deployment faces regulatory conflicts",desc:"AI 系統在多個國家部署時，面臨不同法域的法規要求互相衝突的情況，例如 EU AI Act 的透明度要求與某些國家的國安法規之間的矛盾。",severity:3,source:"Systemic",actor:["AI Design", "AI Deployment"],timing:["Deployment"],sysType:["LLM Application", "Deep Learning"],industry:["Finance"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.1-005",sub:"D6.1",title:"AI 系統未提供法規要求的技術文件",en:"AI system lacks legally required technical documentation",desc:"AI 系統的開發過程未建立法規要求的技術文件（如資料集描述、模型評估報告、風險評估記錄），在監管機構稽查時無法提供合規證據。",severity:3,source:"Human-Internal",actor:["AI Design", "AI Development"],timing:["Design and Development", "Deployment"],sysType:["Traditional ML", "Deep Learning", "LLM Application"],industry:["General"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.2-001",sub:"D6.2",title:"AI 決策造成損害但無法確定責任歸屬",en:"AI decision causes harm but accountability cannot be determined",desc:"AI 系統做出造成損害的決策時，由於系統涉及多個供應商、開發者和操作者，無法明確判定哪個環節的責任最大，受害者難以獲得有效的救濟。",severity:5,source:"Systemic",actor:["AI Design", "AI Deployment"],timing:["Operation and Monitoring"],sysType:["AI Agent", "Deep Learning"],industry:["Healthcare", "Finance"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.2-002",sub:"D6.2",title:"外包 AI 開發導致品質控制責任鏈斷裂",en:"Outsourced AI development breaks quality control accountability chain",desc:"組織將 AI 開發外包給第三方，但未在合約中明確品質標準、安全要求和責任歸屬，當外包開發的模型出現問題時，雙方互推責任。",severity:3,source:"Human-Internal",actor:["AI Design"],timing:["Design and Development"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.2-003",sub:"D6.2",title:"多層 AI 供應鏈中的責任分配不明",en:"Unclear responsibility allocation in multi-tier AI supply chain",desc:"AI 系統的供應鏈涉及多個層級（基礎模型提供者、微調服務商、應用開發者、部署者），各層級之間的責任界線模糊，出問題時難以追責。",severity:4,source:"Systemic",actor:["AI Design", "AI Deployment"],timing:["Inception", "Deployment"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.2-004",sub:"D6.2",title:"AI 系統缺乏稽核軌跡無法事後追責",en:"AI system lacks audit trail preventing post-hoc accountability",desc:"AI 系統缺乏完整的稽核軌跡記錄，無法事後追溯特定決策的輸入、推理過程和輸出，在發生爭議或事故時無法還原真相。",severity:4,source:"Human-Internal",actor:["AI Development", "AI Deployment"],timing:["Design and Development", "Operation and Monitoring"],sysType:["AI Agent", "LLM Application"],industry:["Finance", "Government"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.2-005",sub:"D6.2",title:"自主 Agent 的決策超出任何人類的控制範圍",en:"Autonomous agent decisions beyond any human control",desc:"高度自主的 AI Agent 在沒有人類即時監督的情況下做出重大決策，當決策造成損害時，現有的法律框架難以明確歸責於任何人類主體。",severity:5,source:"AI-System",actor:["AI Design", "AI Development"],timing:["Operation and Monitoring"],sysType:["AI Agent", "Multi-Agent System"],industry:["General"],twP:["問責"],twT:3,refs:{iso:"R6"}},
+  {id:"RS-D6.3-001",sub:"D6.3",title:"AI 自動化導致特定產業大規模裁員",en:"AI automation causes mass layoffs in specific industries",desc:"AI 自動化大規模取代特定產業的人力工作，導致短期內大量勞工失業，而這些勞工可能缺乏轉型所需的技能，造成社會經濟衝擊。",severity:4,source:"Systemic",actor:["AI Design"],timing:["Re-evaluation"],sysType:["Traditional ML", "LLM Application", "AI Agent"],industry:["Manufacturing", "Finance"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.3-002",sub:"D6.3",title:"AI 能力集中於少數科技巨頭加劇數位落差",en:"AI capability concentration in tech giants widens digital divide",desc:"開發和運行大型 AI 系統所需的龐大資本和運算資源，使 AI 能力高度集中在少數科技巨頭手中，中小企業和發展中國家越來越難以競爭。",severity:4,source:"Systemic",actor:["AI Design"],timing:["Re-evaluation"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.3-003",sub:"D6.3",title:"AI 取代創意工作貶低人類藝術價值",en:"AI replacing creative work devalues human artistic value",desc:"AI 能夠以極低成本大量生成文字、圖像、音樂等創意內容，導致人類創作者的經濟收入和社會地位下降，創意產業的商業模式受到根本衝擊。",severity:3,source:"Systemic",actor:["AI Design"],timing:["Re-evaluation"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.3-004",sub:"D6.3",title:"自動化交易 AI 加劇金融市場波動",en:"Automated trading AI amplifies financial market volatility",desc:"高頻交易中的 AI 系統在市場波動時可能觸發連鎖反應，多個 AI 交易系統互相影響形成正回饋迴圈，導致閃崩等市場失序事件。",severity:4,source:"AI-System",actor:["AI Design", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["Traditional ML", "Deep Learning"],industry:["Finance"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.3-005",sub:"D6.3",title:"AI 招聘工具系統性排除特定社經背景求職者",en:"AI hiring tool systematically excludes certain socioeconomic backgrounds",desc:"AI 招聘工具雖然表面上不使用種族或收入等受保護特徵，但透過郵遞區號、學歷等代理變數，實質上系統性地排除特定社經背景的求職者。",severity:4,source:"Systemic",actor:["AI Design", "TEVV"],timing:["Operation and Monitoring", "Re-evaluation"],sysType:["Traditional ML", "LLM Application"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R3"}},
+  {id:"RS-D6.4-001",sub:"D6.4",title:"大型模型訓練碳排放超出組織永續承諾",en:"Large model training carbon emissions exceed sustainability commitments",desc:"訓練大型語言模型需要消耗大量電力和水資源進行冷卻，產生的碳排放可能超出組織的永續發展承諾和碳中和目標。",severity:3,source:"Systemic",actor:["AI Design"],timing:["Inception", "Design and Development"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.4-002",sub:"D6.4",title:"推論階段的持續能源消耗未被納入環境評估",en:"Continuous inference energy consumption not included in environmental assessment",desc:"組織在評估 AI 系統的環境影響時，通常只計算訓練階段的能耗，忽略了部署後長期推論服務所持續消耗的能源，低估了實際的環境足跡。",severity:3,source:"Human-Internal",actor:["AI Design", "Operation & Monitoring"],timing:["Operation and Monitoring"],sysType:["LLM Application", "Deep Learning"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.4-003",sub:"D6.4",title:"GPU（Graphics Processing Unit） 資料中心的水資源消耗影響當地社區",en:"GPU data center water consumption affects local communities",desc:"大型 GPU 資料中心的冷卻系統每天消耗數百萬升的淡水，在水資源匱乏的地區可能與當地社區的用水需求產生衝突。",severity:3,source:"Systemic",actor:["AI Design"],timing:["Inception"],sysType:["Deep Learning", "LLM Application"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.4-004",sub:"D6.4",title:"廢棄 AI 硬體產生電子廢物處理問題",en:"Discarded AI hardware creates e-waste disposal issues",desc:"AI 硬體（特別是 GPU 和專用晶片）的更新換代速度極快，大量仍可運作的硬體被提前汰換，產生的電子廢物處理成為環境負擔。",severity:2,source:"Systemic",actor:["Operation & Monitoring"],timing:["Retirement"],sysType:["Deep Learning"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+  {id:"RS-D6.4-005",sub:"D6.4",title:"頻繁重新訓練模型造成不必要的碳排放",en:"Frequent model retraining causes unnecessary carbon emissions",desc:"組織為了追求微幅的效能提升而頻繁重新訓練模型，每次重新訓練都消耗大量運算資源和能源，但實際效能改善可能不足以證明其環境成本的合理性。",severity:2,source:"Human-Internal",actor:["AI Development", "Operation & Monitoring"],timing:["Operation and Monitoring", "Re-evaluation"],sysType:["Deep Learning", "Traditional ML"],industry:["General"],twP:["永續發展與福祉"],twT:3,refs:{iso:"R8"}},
+];
+
+const CONTROLS = [
+  {id:"C-D1.1-001",name:"訓練資料完整性驗證",type:"Preventive",scenarios:["RS-D1.1-001", "RS-D1.1-002", "RS-D1.1-003", "RS-D1.1-004", "RS-D1.1-005"]},
+  {id:"C-D1.2-001",name:"偏見檢測與資料平衡",type:"Detective",scenarios:["RS-D1.2-001", "RS-D1.2-002", "RS-D1.2-003", "RS-D1.2-004", "RS-D1.2-005"]},
+  {id:"C-D1.3-001",name:"差分隱私與去識別化",type:"Preventive",scenarios:["RS-D1.3-001", "RS-D1.3-002", "RS-D1.3-003", "RS-D1.3-004", "RS-D1.3-005"]},
+  {id:"C-D1.4-001",name:"資料授權審查機制",type:"Preventive",scenarios:["RS-D1.4-001", "RS-D1.4-002", "RS-D1.4-003", "RS-D1.4-004", "RS-D1.4-005"]},
+  {id:"C-D2.1-001",name:"對抗性訓練與輸入驗證",type:"Preventive",scenarios:["RS-D2.1-001", "RS-D2.1-002", "RS-D2.1-003", "RS-D2.1-004", "RS-D2.1-005"]},
+  {id:"C-D2.2-001",name:"輸入過濾與提示清洗",type:"Preventive",scenarios:["RS-D2.2-001", "RS-D2.2-002", "RS-D2.2-003", "RS-D2.2-004", "RS-D2.2-005"]},
+  {id:"C-D2.3-001",name:"API 速率限制與監控",type:"Detective",scenarios:["RS-D2.3-001", "RS-D2.3-002", "RS-D2.3-003", "RS-D2.3-004", "RS-D2.3-005"]},
+  {id:"C-D2.4-001",name:"RAG 檢索品質驗證",type:"Detective",scenarios:["RS-D2.4-001", "RS-D2.4-002", "RS-D2.4-003", "RS-D2.4-004", "RS-D2.4-005"]},
+  {id:"C-D3.1-001",name:"模型簽章與來源追溯",type:"Preventive",scenarios:["RS-D3.1-001", "RS-D3.1-002", "RS-D3.1-003", "RS-D3.1-004", "RS-D3.1-005"]},
+  {id:"C-D3.2-001",name:"模型版本控制與完整性驗證",type:"Preventive",scenarios:["RS-D3.2-001", "RS-D3.2-002", "RS-D3.2-003", "RS-D3.2-004", "RS-D3.2-005"]},
+  {id:"C-D3.3-001",name:"API 認證與授權控制",type:"Preventive",scenarios:["RS-D3.3-001", "RS-D3.3-002", "RS-D3.3-003", "RS-D3.3-004", "RS-D3.3-005"]},
+  {id:"C-D3.4-001",name:"資源配額與異常偵測",type:"Detective",scenarios:["RS-D3.4-001", "RS-D3.4-002", "RS-D3.4-003", "RS-D3.4-004", "RS-D3.4-005"]},
+  {id:"C-D4.1-001",name:"Agent 權限沙箱與工具白名單",type:"Preventive",scenarios:["RS-D4.1-001", "RS-D4.1-002", "RS-D4.1-003", "RS-D4.1-004", "RS-D4.1-005"]},
+  {id:"C-D4.2-001",name:"人機協作決策機制",type:"Preventive",scenarios:["RS-D4.2-001", "RS-D4.2-002", "RS-D4.2-003", "RS-D4.2-004", "RS-D4.2-005"]},
+  {id:"C-D4.3-001",name:"輸出內容安全過濾",type:"Preventive",scenarios:["RS-D4.3-001", "RS-D4.3-002", "RS-D4.3-003", "RS-D4.3-004", "RS-D4.3-005"]},
+  {id:"C-D4.4-001",name:"多智能體協調協議",type:"Preventive",scenarios:["RS-D4.4-001", "RS-D4.4-002", "RS-D4.4-003", "RS-D4.4-004", "RS-D4.4-005"]},
+  {id:"C-D5.1-001",name:"公平性測試與偏見審計",type:"Detective",scenarios:["RS-D5.1-001", "RS-D5.1-002", "RS-D5.1-003", "RS-D5.1-004", "RS-D5.1-005"]},
+  {id:"C-D5.2-001",name:"可解釋性報告生成",type:"Detective",scenarios:["RS-D5.2-001", "RS-D5.2-002", "RS-D5.2-003", "RS-D5.2-004", "RS-D5.2-005"]},
+  {id:"C-D5.3-001",name:"人類監督與否決機制",type:"Preventive",scenarios:["RS-D5.3-001", "RS-D5.3-002", "RS-D5.3-003", "RS-D5.3-004", "RS-D5.3-005"]},
+  {id:"C-D5.4-001",name:"內容安全分類與過濾",type:"Preventive",scenarios:["RS-D5.4-001", "RS-D5.4-002", "RS-D5.4-003", "RS-D5.4-004", "RS-D5.4-005"]},
+  {id:"C-D6.1-001",name:"合規差距分析與監控",type:"Detective",scenarios:["RS-D6.1-001", "RS-D6.1-002", "RS-D6.1-003", "RS-D6.1-004", "RS-D6.1-005"]},
+  {id:"C-D6.2-001",name:"稽核軌跡與責任鏈記錄",type:"Detective",scenarios:["RS-D6.2-001", "RS-D6.2-002", "RS-D6.2-003", "RS-D6.2-004", "RS-D6.2-005"]},
+  {id:"C-D6.3-001",name:"社會影響評估",type:"Detective",scenarios:["RS-D6.3-001", "RS-D6.3-002", "RS-D6.3-003", "RS-D6.3-004", "RS-D6.3-005"]},
+  {id:"C-D6.4-001",name:"碳足跡追蹤與能效優化",type:"Corrective",scenarios:["RS-D6.4-001", "RS-D6.4-002", "RS-D6.4-003", "RS-D6.4-004", "RS-D6.4-005"]},
+];
+
+const SYS_TYPES = ["Traditional ML","Deep Learning","LLM Application","RAG System","AI Agent","Multi-Agent System","Computer Vision","Recommender System"];
+const SYS_TYPE_ZH = {"Traditional ML":"傳統ML","Deep Learning":"深度學習","LLM Application":"LLM應用","RAG System":"RAG系統","AI Agent":"AI Agent","Multi-Agent System":"多智能體","Computer Vision":"電腦視覺","Recommender System":"推薦系統"};
+
+// 數發部 7 大原則
+const TW_PRINCIPLES = [
+  { id: "隱私保護與資料治理", en: "Privacy & Data Governance", color: "#3498DB" },
+  { id: "資安與安全", en: "Cybersecurity & Safety", color: "#E74C3C" },
+  { id: "公平與不歧視", en: "Fairness & Non-discrimination", color: "#F1C40F" },
+  { id: "透明與可解釋", en: "Transparency & Explainability", color: "#E67E22" },
+  { id: "人類自主", en: "Human Autonomy", color: "#9B59B6" },
+  { id: "問責", en: "Accountability", color: "#1ABC9C" },
+  { id: "永續發展與福祉", en: "Sustainable Development", color: "#2ECC71" },
+];
+const TW_P_COLOR = {};
+TW_PRINCIPLES.forEach(p => TW_P_COLOR[p.id] = p.color);
+
+// 數發部 3 大風險類型
+const TW_RISK_TYPES = [
+  { id: 1, name: "技術設計缺陷", en: "Technical Design Flaws", color: "#E74C3C" },
+  { id: 2, name: "部署操作與人機互動", en: "Deployment & Interaction", color: "#9B59B6" },
+  { id: 3, name: "社會結構與環境衝擊", en: "Social & Environmental", color: "#2ECC71" },
+];
+const TW_T_COLOR = {};
+TW_RISK_TYPES.forEach(t => TW_T_COLOR[t.id] = t.color);
+
+function buildGraphData(filter, viewMode) {
+  const domainMap = {};
+  DOMAINS.forEach(d => domainMap[d.id] = d);
+  const subMap = {};
+  SUBDOMAINS.forEach(s => subMap[s.id] = s);
+  const nodes = [];
+  const links = [];
+  const nodeSet = new Set();
+  const addNode = (id, obj) => { if (!nodeSet.has(id)) { nodeSet.add(id); nodes.push(obj); } };
+
+  let filtered = SCENARIOS;
+  if (filter.sysType) filtered = filtered.filter(s => s.sysType.includes(filter.sysType));
+  if (filter.domain) filtered = filtered.filter(s => subMap[s.sub]?.domain === filter.domain);
+  if (filter.minSeverity > 1) filtered = filtered.filter(s => s.severity >= filter.minSeverity);
+  if (filter.search) {
+    const q = filter.search.toLowerCase();
+    filtered = filtered.filter(s => s.title.toLowerCase().includes(q) || s.en.toLowerCase().includes(q) || s.sub.toLowerCase().includes(q) || s.sysType.some(t => (SYS_TYPE_ZH[t]||t).toLowerCase().includes(q) || t.toLowerCase().includes(q)) || s.industry.some(i => i.toLowerCase().includes(q)));
+  }
+
+  // 顏色計算函數：根據 viewMode 決定節點顏色
+  const getScenarioColor = (sc) => {
+    if (viewMode === "principle") return TW_P_COLOR[sc.twP?.[0]] || "#666";
+    if (viewMode === "riskType") return TW_T_COLOR[sc.twT] || "#666";
+    return domainMap[subMap[sc.sub]?.domain]?.color || "#999";
+  };
+  const getSubdomainColor = (s) => {
+    if (viewMode === "domain") return domainMap[s.domain]?.color || "#999";
+    // 原則/類型模式下，subdomain 用淡灰，讓 scenario 顏色更突出
+    return "#445566";
+  };
+  const getDomainNodeColor = (d) => {
+    if (viewMode === "domain") return d.color;
+    return "#445566";
+  };
+
+  const usedSubs = new Set(filtered.map(s => s.sub));
+  const usedDomains = new Set([...usedSubs].map(s => subMap[s]?.domain));
+
+  DOMAINS.filter(d => usedDomains.has(d.id)).forEach(d => {
+    addNode(d.id, { id: d.id, label: d.name, type: "domain", color: getDomainNodeColor(d), r: 28 });
+  });
+
+  SUBDOMAINS.filter(s => usedSubs.has(s.id)).forEach(s => {
+    const d = domainMap[s.domain];
+    addNode(s.id, { id: s.id, label: s.name, type: "subdomain", color: getSubdomainColor(s), r: 16 });
+    links.push({ source: s.id, target: s.domain, type: "part_of", color: getSubdomainColor(s), width: 2.5 });
+  });
+
+  filtered.forEach(sc => {
+    const color = getScenarioColor(sc);
+    addNode(sc.id, { id: sc.id, label: sc.title, en: sc.en, desc: sc.desc, type: "scenario", color, r: 4 + sc.severity * 2, severity: sc.severity, source: sc.source, actor: sc.actor, timing: sc.timing, sysType: sc.sysType, industry: sc.industry, refs: sc.refs, twP: sc.twP, twT: sc.twT });
+    links.push({ source: sc.id, target: sc.sub, type: "belongs_to", color: "#444", width: 0.8 });
+  });
+
+  const usedScIds = new Set(filtered.map(s => s.id));
+  CONTROLS.forEach(c => {
+    const linked = c.scenarios.filter(s => usedScIds.has(s));
+    if (linked.length > 0) {
+      addNode(c.id, { id: c.id, label: c.name, type: "control", color: "#27AE60", r: 7, controlType: c.type });
+      linked.forEach(sId => {
+        links.push({ source: c.id, target: sId, type: "mitigated_by", color: "#27AE6066", width: 0.6, dashed: true });
+      });
+    }
+  });
+
+  const usedTypes = new Set();
+  filtered.forEach(sc => sc.sysType.forEach(t => usedTypes.add(t)));
+  usedTypes.forEach(t => {
+    addNode("ST-"+t, { id: "ST-"+t, label: SYS_TYPE_ZH[t]||t, type: "sysType", color: "#8E44AD", r: 13 });
+  });
+  filtered.forEach(sc => {
+    sc.sysType.forEach(t => {
+      links.push({ source: sc.id, target: "ST-"+t, type: "affects", color: "#8E44AD44", width: 0.5, dashed: true });
+    });
+  });
+
+  return { nodes, links };
+}
+
+function DetailPanel({ node, onClose }) {
+  if (!node) return null;
+  const sev = node.severity || 0;
+  return (
+    <div style={{position:"fixed",bottom:0,left:0,right:0,maxHeight:"55vh",background:"#16213e",borderTop:"2px solid #0f3460",borderRadius:"16px 16px 0 0",padding:"16px 20px 24px",overflowY:"auto",zIndex:100,fontFamily:"'Noto Sans TC',sans-serif",color:"#e0e0e0",boxShadow:"0 -4px 30px rgba(0,0,0,0.6)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div style={{fontSize:15,fontWeight:700,color:"#fff",maxWidth:"85%"}}>{node.label}</div>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#aaa",fontSize:22,cursor:"pointer",padding:"0 4px"}}>✕</button>
+      </div>
+      {node.en && <div style={{fontSize:12,color:"#8899aa",marginBottom:node.desc?8:12}}>{node.en}</div>}
+      {node.desc && <div style={{fontSize:12,color:"#c8d6e5",lineHeight:1.7,marginBottom:12,padding:"8px 10px",background:"#1a2744",borderRadius:8,borderLeft:"3px solid "+({scenario:node.color,control:"#27AE60"}[node.type]||"#445")}}>{node.desc}</div>}
+      {node.type==="scenario" && (
+        <div style={{fontSize:12,lineHeight:1.9}}>
+          <div><span style={{color:"#888"}}>嚴重度:</span> <span style={{color:sev>=4?"#e74c3c":sev>=3?"#f39c12":"#2ecc71"}}>{"★".repeat(sev)}{"☆".repeat(5-sev)}</span></div>
+          <div><span style={{color:"#888"}}>風險來源:</span> {node.source}</div>
+          <div><span style={{color:"#888"}}>責任角色:</span> {node.actor?.join(", ")}</div>
+          <div><span style={{color:"#888"}}>生命週期:</span> {node.timing?.join(", ")}</div>
+          <div><span style={{color:"#888"}}>系統類型:</span> {node.sysType?.map(t=>SYS_TYPE_ZH[t]||t).join(", ")}</div>
+          <div><span style={{color:"#888"}}>行業:</span> {node.industry?.join(", ")}</div>
+          {node.twP && <div><span style={{color:"#888"}}>🇹🇼 法規原則:</span> {node.twP.join(", ")}</div>}
+          {node.twT && <div><span style={{color:"#888"}}>🇹🇼 風險類型:</span> {TW_RISK_TYPES.find(t=>t.id===node.twT)?.name || node.twT}</div>}
+        </div>
+      )}
+      {node.type==="control" && <div style={{fontSize:12}}>控制類型: {node.controlType}</div>}
+      {node.type==="domain" && <div style={{fontSize:12,color:"#aaa"}}>頂層風險領域<br/>可透過上方色塊篩選此領域</div>}
+      {node.type==="subdomain" && <div style={{fontSize:12,color:"#aaa"}}>子領域<br/>包含多個具體風險情境</div>}
+      {node.type==="sysType" && <div style={{fontSize:12,color:"#aaa"}}>AI 系統架構類型<br/>可透過上方按鈕篩選</div>}
+    </div>
+  );
+}
+
+function AIRiskKnowledgeGraph() {
+  const svgRef = useRef(null);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [filter, setFilter] = useState({ sysType: null, domain: null, search: "", minSeverity: 1 });
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState("domain"); // "domain" | "principle" | "riskType"
+
+  useEffect(() => {
+    setGraphData(buildGraphData(filter, viewMode));
+    setSelectedNode(null);
+  }, [filter, viewMode]);
+
+  const handleNodeClick = useCallback((d) => {
+    setSelectedNode(d);
+  }, []);
+
+  useEffect(() => {
+    if (!svgRef.current || graphData.nodes.length === 0) return;
+    const container = svgRef.current.parentElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    d3.select(svgRef.current).selectAll("*").remove();
+    const svg = d3.select(svgRef.current).attr("width", width).attr("height", height);
+    const g = svg.append("g");
+
+    const zoom = d3.zoom().scaleExtent([0.2, 5]).on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    });
+    svg.call(zoom);
+    svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.55));
+
+    const sim = d3.forceSimulation(graphData.nodes)
+      .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(d => {
+        if (d.type === "part_of") return 55;
+        if (d.type === "belongs_to") return 35;
+        if (d.type === "affects") return 120;
+        return 60;
+      }).strength(d => d.type === "part_of" ? 0.7 : d.type === "belongs_to" ? 0.5 : 0.08))
+      .force("charge", d3.forceManyBody().strength(d => d.type === "domain" ? -500 : d.type === "subdomain" ? -150 : d.type === "sysType" ? -200 : -30))
+      .force("center", d3.forceCenter(0, 0).strength(0.05))
+      .force("collision", d3.forceCollide().radius(d => d.r + 2));
+
+    const link = g.append("g").selectAll("line").data(graphData.links).join("line")
+      .attr("stroke", d => d.color || "#333").attr("stroke-width", d => d.width || 0.8)
+      .attr("stroke-opacity", d => d.type === "affects" || d.type === "mitigated_by" ? 0.25 : 0.5)
+      .attr("stroke-dasharray", d => d.dashed ? "3,3" : null);
+
+    const node = g.append("g").selectAll("g").data(graphData.nodes).join("g")
+      .style("cursor", "pointer");
+
+    node.each(function(d) {
+      const el = d3.select(this);
+      if (d.type === "control") {
+        const s = d.r * 1.3;
+        el.append("path").attr("d", `M0,${-s} L${s},0 L0,${s} L${-s},0 Z`)
+          .attr("fill", d.color).attr("stroke", "#ffffff33").attr("stroke-width", 0.5).attr("opacity", 0.8);
+      } else if (d.type === "sysType") {
+        const s = d.r;
+        const hex = d3.range(6).map(i => { const a = Math.PI/3*i - Math.PI/6; return [s*Math.cos(a), s*Math.sin(a)]; });
+        el.append("polygon").attr("points", hex.map(p => p.join(",")).join(" "))
+          .attr("fill", d.color).attr("stroke", "#ffffff44").attr("stroke-width", 0.5).attr("opacity", 0.85);
+      } else {
+        el.append("circle").attr("r", d.r)
+          .attr("fill", d.color)
+          .attr("stroke", d.type === "domain" ? "#ffffff88" : "none")
+          .attr("stroke-width", d.type === "domain" ? 2 : 0)
+          .attr("opacity", d.type === "scenario" ? 0.75 : 0.9);
+      }
+    });
+
+    node.filter(d => d.type !== "scenario" && d.type !== "control").append("text")
+      .text(d => d.label.length > 8 ? d.label.slice(0, 7) + "…" : d.label)
+      .attr("text-anchor", "middle").attr("dy", d => d.r + 13)
+      .attr("fill", "#bbb").attr("font-size", d => d.type === "domain" ? 11 : 9)
+      .attr("font-family", "'Noto Sans TC',sans-serif")
+      .style("pointer-events", "none");
+
+    node.on("click", (event, d) => { event.stopPropagation(); handleNodeClick(d); });
+    svg.on("click", () => setSelectedNode(null));
+
+    const drag = d3.drag()
+      .on("start", (event, d) => { if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on("drag", (event, d) => { d.fx = event.x; d.fy = event.y; })
+      .on("end", (event, d) => { if (!event.active) sim.alphaTarget(0); d.fx = null; d.fy = null; });
+    node.call(drag);
+
+    sim.on("tick", () => {
+      link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+      node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    return () => sim.stop();
+  }, [graphData, handleNodeClick]);
+
+  const af = filter.sysType || filter.domain || filter.search || filter.minSeverity > 1;
+
+  return (
+    <div style={{width:"100vw",height:"100vh",background:"#0a0a1a",display:"flex",flexDirection:"column",fontFamily:"'Noto Sans TC',sans-serif",overflow:"hidden",position:"relative"}}>
+      <div style={{padding:"10px 16px 4px",background:"linear-gradient(180deg,#16213e 0%,#0a0a1a 100%)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:16,fontWeight:700,color:"#fff",letterSpacing:1}}>🕸️ AI 風險知識圖譜 <span style={{fontSize:11,color:"#556",fontWeight:400}}>v1.0</span></div>
+            <div style={{fontSize:10,color:"#556",marginTop:1}}>AI Risk Knowledge Graph — Designed by Peter Pan（潘世鳴）</div>
+          </div>
+          <button onClick={()=>setShowFilters(v=>!v)} style={{background:showFilters?"#0f3460":"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:8,padding:"6px 10px",color:showFilters?"#4fc3f7":"#667",fontSize:12,cursor:"pointer"}}>
+            {showFilters ? "▲ 收合" : "▼ 篩選"}
+          </button>
+        </div>
+      </div>
+
+      {showFilters && (
+        <div style={{padding:"6px 16px 8px",background:"#0d1528",borderBottom:"1px solid #1a2a4a"}}>
+          <div style={{position:"relative",marginBottom:8}}>
+            <input
+              type="text"
+              placeholder="🔍 搜尋風險情境、系統類型、行業..."
+              value={filter.search}
+              onChange={e=>setFilter(f=>({...f,search:e.target.value}))}
+              style={{width:"100%",padding:"7px 12px 7px 12px",background:"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:10,color:"#ddd",fontSize:12,fontFamily:"'Noto Sans TC',sans-serif",outline:"none",boxSizing:"border-box"}}
+            />
+            {filter.search && <button onClick={()=>setFilter(f=>({...f,search:""}))} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#667",fontSize:14,cursor:"pointer"}}>✕</button>}
+          </div>
+
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+            <span style={{fontSize:10,color:"#667",flexShrink:0}}>嚴重度 ≥</span>
+            {[1,2,3,4,5].map(n=>(
+              <button key={n} onClick={()=>setFilter(f=>({...f,minSeverity:f.minSeverity===n&&n===1?1:n}))} style={{...cs,background:filter.minSeverity===n?"#7f1d1d":"#1a1a2e",color:filter.minSeverity===n?"#fca5a5":"#556",minWidth:28,textAlign:"center",padding:"3px 6px"}}>
+                {n===1?"全部":("★".repeat(n))}
+              </button>
+            ))}
+          </div>
+
+          <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:6}}>
+            <button onClick={()=>setFilter({sysType:null,domain:null,search:"",minSeverity:1})} style={{...cs,background:!af?"#0f3460":"#1a1a2e",color:!af?"#4fc3f7":"#556"}}>全部</button>
+            {SYS_TYPES.map(t=>(
+              <button key={t} onClick={()=>setFilter(f=>({...f,sysType:f.sysType===t?null:t,domain:null}))} style={{...cs,background:filter.sysType===t?"#4a148c":"#1a1a2e",color:filter.sysType===t?"#ce93d8":"#556"}}>
+                {SYS_TYPE_ZH[t]}
+              </button>
+            ))}
+          </div>
+
+          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:9,color:"#556"}}>
+            {DOMAINS.map(d=>(
+              <span key={d.id} onClick={()=>setFilter(f=>({...f,domain:f.domain===d.id?null:d.id,sysType:null}))} style={{cursor:"pointer",padding:"2px 6px",borderRadius:8,background:filter.domain===d.id?d.color+"25":"transparent",border:filter.domain===d.id?`1px solid ${d.color}50`:"1px solid transparent"}}>
+                <span style={{color:d.color}}>●</span> {d.name.replace("風險","")}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!showFilters && (
+        <div style={{padding:"4px 16px 6px"}}>
+          <div style={{display:"flex",gap:4,marginBottom:4}}>
+            {[{k:"domain",l:"風險領域"},{k:"principle",l:"🇹🇼 法規原則"},{k:"riskType",l:"🇹🇼 風險類型"}].map(v=>(
+              <button key={v.k} onClick={()=>setViewMode(v.k)} style={{...cs,background:viewMode===v.k?"#0f3460":"#1a1a2e",color:viewMode===v.k?"#4fc3f7":"#556",fontSize:9,padding:"2px 8px"}}>
+                {v.l}
+              </button>
+            ))}
+            {af && <span style={{color:"#4fc3f7",marginLeft:"auto",cursor:"pointer",fontSize:9}} onClick={()=>setFilter({sysType:null,domain:null,search:"",minSeverity:1})}>✕ 清除篩選</span>}
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:9,color:"#556"}}>
+            {viewMode==="domain" && DOMAINS.map(d=>(
+              <span key={d.id} style={{padding:"1px 4px"}}>
+                <span style={{color:d.color}}>●</span> {d.name.replace("風險","")}
+              </span>
+            ))}
+            {viewMode==="principle" && TW_PRINCIPLES.map(p=>(
+              <span key={p.id} style={{padding:"1px 4px"}}>
+                <span style={{color:p.color}}>●</span> {p.id}
+              </span>
+            ))}
+            {viewMode==="riskType" && TW_RISK_TYPES.map(t=>(
+              <span key={t.id} style={{padding:"1px 4px"}}>
+                <span style={{color:t.color}}>●</span> {t.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{flex:1,position:"relative"}}>
+        <svg ref={svgRef} style={{width:"100%",height:"100%"}} />
+      </div>
+
+      <div style={{padding:"3px 16px 5px",fontSize:9,color:"#334",textAlign:"center",background:"#0a0a1a"}}>
+        節點: {graphData.nodes.length} | 邊: {graphData.links.length} | 情境: {graphData.nodes.filter(n=>n.type==="scenario").length} | 控制: {graphData.nodes.filter(n=>n.type==="control").length}
+      </div>
+
+      <DetailPanel node={selectedNode} onClose={()=>setSelectedNode(null)} />
+    </div>
+  );
+}
+
+const cs = {border:"1px solid #2a2a3e",borderRadius:14,padding:"3px 9px",fontSize:10,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"'Noto Sans TC',sans-serif"};
+
+    
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(AIRiskKnowledgeGraph));
+  </script>
+</body>
+</html>
