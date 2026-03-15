@@ -321,13 +321,13 @@ function DetailPanel({ node, onClose }) {
   return (
     <div style={{position:"fixed",bottom:0,left:0,right:0,maxHeight:"55vh",background:"#16213e",borderTop:"2px solid #0f3460",borderRadius:"16px 16px 0 0",padding:"18px 22px 26px",overflowY:"auto",zIndex:100,fontFamily:"'Noto Sans TC',sans-serif",color:"#e0e0e0",boxShadow:"0 -4px 30px rgba(0,0,0,0.6)"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <div style={{fontSize:19,fontWeight:700,color:"#fff",maxWidth:"85%"}}>{node.label}</div>
-        <button onClick={onClose} style={{background:"none",border:"none",color:"#aaa",fontSize:24,cursor:"pointer",padding:"0 4px"}}>✕</button>
+        <div style={{fontSize:21,fontWeight:700,color:"#fff",maxWidth:"85%"}}>{node.label}</div>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#aaa",fontSize:26,cursor:"pointer",padding:"0 4px"}}>✕</button>
       </div>
-      {node.en && <div style={{fontSize:14,color:"#8899aa",marginBottom:node.desc?10:14}}>{node.en}</div>}
-      {node.desc && <div style={{fontSize:14,color:"#c8d6e5",lineHeight:1.7,marginBottom:14,padding:"10px 12px",background:"#1a2744",borderRadius:8,borderLeft:"3px solid "+({scenario:node.color,control:"#27AE60"}[node.type]||"#445")}}>{node.desc}</div>}
+      {node.en && <div style={{fontSize:16,color:"#8899aa",marginBottom:node.desc?10:14}}>{node.en}</div>}
+      {node.desc && <div style={{fontSize:16,color:"#c8d6e5",lineHeight:1.7,marginBottom:14,padding:"10px 12px",background:"#1a2744",borderRadius:8,borderLeft:"3px solid "+({scenario:node.color,control:"#27AE60"}[node.type]||"#445")}}>{node.desc}</div>}
       {node.type==="scenario" && (
-        <div style={{fontSize:14,lineHeight:2.0}}>
+        <div style={{fontSize:16,lineHeight:2.0}}>
           <div><span style={{color:"#888"}}>嚴重度:</span> <span style={{color:sev>=4?"#e74c3c":sev>=3?"#f39c12":"#2ecc71"}}>{"★".repeat(sev)}{"☆".repeat(5-sev)}</span></div>
           <div><span style={{color:"#888"}}>風險來源:</span> {node.source}</div>
           <div><span style={{color:"#888"}}>責任角色:</span> {node.actor?.join(", ")}</div>
@@ -338,10 +338,10 @@ function DetailPanel({ node, onClose }) {
           {node.twT && <div><span style={{color:"#888"}}>🇹🇼 風險類型:</span> {TW_RISK_TYPES.find(t=>t.id===node.twT)?.name || node.twT}</div>}
         </div>
       )}
-      {node.type==="control" && <div style={{fontSize:14}}>控制類型: {node.controlType}</div>}
-      {node.type==="domain" && <div style={{fontSize:14,color:"#aaa"}}>點擊領域可篩選該領域下所有風險情境<br/>再次點擊取消篩選</div>}
-      {node.type==="subdomain" && <div style={{fontSize:14,color:"#aaa"}}>點擊子領域可聚焦該子領域的風險情境<br/>再次點擊取消篩選</div>}
-      {node.type==="sysType" && <div style={{fontSize:14,color:"#aaa"}}>AI 系統架構類型<br/>可透過上方按鈕篩選</div>}
+      {node.type==="control" && <div style={{fontSize:16}}>控制類型: {node.controlType}</div>}
+      {node.type==="domain" && <div style={{fontSize:16,color:"#aaa"}}>點擊領域可篩選該領域下所有風險情境<br/>再次點擊取消篩選</div>}
+      {node.type==="subdomain" && <div style={{fontSize:16,color:"#aaa"}}>點擊子領域可聚焦該子領域的風險情境<br/>再次點擊取消篩選</div>}
+      {node.type==="sysType" && <div style={{fontSize:16,color:"#aaa"}}>AI 系統架構類型<br/>可透過上方按鈕篩選</div>}
     </div>
   );
 }
@@ -428,7 +428,7 @@ function AIRiskKnowledgeGraph() {
     node.filter(d => d.type !== "scenario" && d.type !== "control").append("text")
       .text(d => d.label.length > 8 ? d.label.slice(0, 7) + "…" : d.label)
       .attr("text-anchor", "middle").attr("dy", d => d.r + 13)
-      .attr("fill", "#bbb").attr("font-size", d => d.type === "domain" ? 11 : 9)
+      .attr("fill", "#bbb").attr("font-size", d => d.type === "domain" ? 14 : 11)
       .attr("font-family", "'Noto Sans TC',sans-serif")
       .style("pointer-events", "none");
 
@@ -456,10 +456,10 @@ function AIRiskKnowledgeGraph() {
       <div style={{padding:"10px 16px 4px",background:"linear-gradient(180deg,#16213e 0%,#0a0a1a 100%)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
-            <div style={{fontSize:18,fontWeight:700,color:"#fff",letterSpacing:1}}>🕸️ AI 風險知識圖譜 <span style={{fontSize:13,color:"#556",fontWeight:400}}>v1.0</span></div>
-            <div style={{fontSize:12,color:"#556",marginTop:1}}>AI Risk Knowledge Graph — Designed by Peter Pan（潘世鳴）</div>
+            <div style={{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:1}}>🕸️ AI 風險知識圖譜 <span style={{fontSize:15,color:"#556",fontWeight:400}}>v1.0</span></div>
+            <div style={{fontSize:14,color:"#556",marginTop:1}}>AI Risk Knowledge Graph — Designed by Peter Pan（潘世鳴）</div>
           </div>
-          <button onClick={()=>setShowFilters(v=>!v)} style={{background:showFilters?"#0f3460":"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:8,padding:"6px 10px",color:showFilters?"#4fc3f7":"#667",fontSize:12,cursor:"pointer"}}>
+          <button onClick={()=>setShowFilters(v=>!v)} style={{background:showFilters?"#0f3460":"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:8,padding:"6px 10px",color:showFilters?"#4fc3f7":"#667",fontSize:14,cursor:"pointer"}}>
             {showFilters ? "▲ 收合" : "▼ 篩選"}
           </button>
         </div>
@@ -473,13 +473,13 @@ function AIRiskKnowledgeGraph() {
               placeholder="🔍 搜尋風險情境、系統類型、行業..."
               value={filter.search}
               onChange={e=>setFilter(f=>({...f,search:e.target.value}))}
-              style={{width:"100%",padding:"7px 12px 7px 12px",background:"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:10,color:"#ddd",fontSize:12,fontFamily:"'Noto Sans TC',sans-serif",outline:"none",boxSizing:"border-box"}}
+              style={{width:"100%",padding:"7px 12px 7px 12px",background:"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:10,color:"#ddd",fontSize:14,fontFamily:"'Noto Sans TC',sans-serif",outline:"none",boxSizing:"border-box"}}
             />
-            {filter.search && <button onClick={()=>setFilter(f=>({...f,search:""}))} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#667",fontSize:14,cursor:"pointer"}}>✕</button>}
+            {filter.search && <button onClick={()=>setFilter(f=>({...f,search:""}))} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#667",fontSize:16,cursor:"pointer"}}>✕</button>}
           </div>
 
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-            <span style={{fontSize:10,color:"#667",flexShrink:0}}>嚴重度 ≥</span>
+            <span style={{fontSize:12,color:"#667",flexShrink:0}}>嚴重度 ≥</span>
             {[1,2,3,4,5].map(n=>(
               <button key={n} onClick={()=>setFilter(f=>({...f,minSeverity:f.minSeverity===n&&n===1?1:n}))} style={{...cs,background:filter.minSeverity===n?"#7f1d1d":"#1a1a2e",color:filter.minSeverity===n?"#fca5a5":"#556",minWidth:28,textAlign:"center",padding:"3px 6px"}}>
                 {n===1?"全部":("★".repeat(n))}
@@ -496,7 +496,7 @@ function AIRiskKnowledgeGraph() {
             ))}
           </div>
 
-          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:11,color:"#556"}}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:13,color:"#556"}}>
             {DOMAINS.map(d=>(
               <span key={d.id} onClick={()=>setFilter(f=>({...f,domain:f.domain===d.id?null:d.id,sysType:null}))} style={{cursor:"pointer",padding:"2px 6px",borderRadius:8,background:filter.domain===d.id?d.color+"25":"transparent",border:filter.domain===d.id?`1px solid ${d.color}50`:"1px solid transparent"}}>
                 <span style={{color:d.color}}>●</span> {d.name.replace("風險","")}
@@ -510,13 +510,13 @@ function AIRiskKnowledgeGraph() {
         <div style={{padding:"4px 16px 6px"}}>
           <div style={{display:"flex",gap:4,marginBottom:4}}>
             {[{k:"domain",l:"風險領域"},{k:"principle",l:"🇹🇼 法規原則"},{k:"riskType",l:"🇹🇼 風險類型"}].map(v=>(
-              <button key={v.k} onClick={()=>setViewMode(v.k)} style={{...cs,background:viewMode===v.k?"#0f3460":"#1a1a2e",color:viewMode===v.k?"#4fc3f7":"#556",fontSize:11,padding:"2px 8px"}}>
+              <button key={v.k} onClick={()=>setViewMode(v.k)} style={{...cs,background:viewMode===v.k?"#0f3460":"#1a1a2e",color:viewMode===v.k?"#4fc3f7":"#556",fontSize:13,padding:"2px 8px"}}>
                 {v.l}
               </button>
             ))}
-            {af && <span style={{color:"#4fc3f7",marginLeft:"auto",cursor:"pointer",fontSize:11}} onClick={()=>setFilter({sysType:null,domain:null,subdomain:null,search:"",minSeverity:1})}>✕ 清除篩選</span>}
+            {af && <span style={{color:"#4fc3f7",marginLeft:"auto",cursor:"pointer",fontSize:13}} onClick={()=>setFilter({sysType:null,domain:null,subdomain:null,search:"",minSeverity:1})}>✕ 清除篩選</span>}
           </div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:11,color:"#556"}}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:13,color:"#556"}}>
             {viewMode==="domain" && DOMAINS.map(d=>(
               <span key={d.id} style={{padding:"1px 4px"}}>
                 <span style={{color:d.color}}>●</span> {d.name.replace("風險","")}
@@ -540,7 +540,7 @@ function AIRiskKnowledgeGraph() {
         <svg ref={svgRef} style={{width:"100%",height:"100%"}} />
       </div>
 
-      <div style={{padding:"3px 16px 5px",fontSize:11,color:"#334",textAlign:"center",background:"#0a0a1a"}}>
+      <div style={{padding:"3px 16px 5px",fontSize:13,color:"#334",textAlign:"center",background:"#0a0a1a"}}>
         節點: {graphData.nodes.length} | 邊: {graphData.links.length} | 情境: {graphData.nodes.filter(n=>n.type==="scenario").length} | 控制: {graphData.nodes.filter(n=>n.type==="control").length}
       </div>
 
@@ -549,7 +549,7 @@ function AIRiskKnowledgeGraph() {
   );
 }
 
-const cs = {border:"1px solid #2a2a3e",borderRadius:14,padding:"4px 10px",fontSize:12,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"'Noto Sans TC',sans-serif"};
+const cs = {border:"1px solid #2a2a3e",borderRadius:14,padding:"4px 10px",fontSize:14,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"'Noto Sans TC',sans-serif"};
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(AIRiskKnowledgeGraph));
