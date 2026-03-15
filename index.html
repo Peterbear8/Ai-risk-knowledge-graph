@@ -17,15 +17,12 @@
 </head>
 <body>
   <div id="root"></div>
-  
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback } = React;
-    
 
 const DOMAINS = [
   { id: "D1", name: "資料與隱私風險", en: "Data & Privacy", color: "#4A90D9", tw_type: 1 },
@@ -250,7 +247,8 @@ function buildGraphData(filter, viewMode) {
 
   let filtered = SCENARIOS;
   if (filter.sysType) filtered = filtered.filter(s => s.sysType.includes(filter.sysType));
-  if (filter.domain) filtered = filtered.filter(s => subMap[s.sub]?.domain === filter.domain);
+  if (filter.subdomain) filtered = filtered.filter(s => s.sub === filter.subdomain);
+  else if (filter.domain) filtered = filtered.filter(s => subMap[s.sub]?.domain === filter.domain);
   if (filter.minSeverity > 1) filtered = filtered.filter(s => s.severity >= filter.minSeverity);
   if (filter.search) {
     const q = filter.search.toLowerCase();
@@ -341,8 +339,8 @@ function DetailPanel({ node, onClose }) {
         </div>
       )}
       {node.type==="control" && <div style={{fontSize:12}}>控制類型: {node.controlType}</div>}
-      {node.type==="domain" && <div style={{fontSize:12,color:"#aaa"}}>頂層風險領域<br/>可透過上方色塊篩選此領域</div>}
-      {node.type==="subdomain" && <div style={{fontSize:12,color:"#aaa"}}>子領域<br/>包含多個具體風險情境</div>}
+      {node.type==="domain" && <div style={{fontSize:12,color:"#aaa"}}>點擊領域可篩選該領域下所有風險情境<br/>再次點擊取消篩選</div>}
+      {node.type==="subdomain" && <div style={{fontSize:12,color:"#aaa"}}>點擊子領域可聚焦該子領域的風險情境<br/>再次點擊取消篩選</div>}
       {node.type==="sysType" && <div style={{fontSize:12,color:"#aaa"}}>AI 系統架構類型<br/>可透過上方按鈕篩選</div>}
     </div>
   );
@@ -351,18 +349,25 @@ function DetailPanel({ node, onClose }) {
 function AIRiskKnowledgeGraph() {
   const svgRef = useRef(null);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [filter, setFilter] = useState({ sysType: null, domain: null, search: "", minSeverity: 1 });
+  const [filter, setFilter] = useState({ sysType: null, domain: null, subdomain: null, search: "", minSeverity: 1 });
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState("domain"); // "domain" | "principle" | "riskType"
 
   useEffect(() => {
     setGraphData(buildGraphData(filter, viewMode));
-    setSelectedNode(null);
   }, [filter, viewMode]);
 
   const handleNodeClick = useCallback((d) => {
-    setSelectedNode(d);
+    if (d.type === "subdomain") {
+      setFilter(f => ({ ...f, subdomain: f.subdomain === d.id ? null : d.id, domain: null, sysType: null }));
+      setSelectedNode(d);
+    } else if (d.type === "domain") {
+      setFilter(f => ({ ...f, domain: f.domain === d.id ? null : d.id, subdomain: null, sysType: null }));
+      setSelectedNode(d);
+    } else {
+      setSelectedNode(d);
+    }
   }, []);
 
   useEffect(() => {
@@ -444,7 +449,7 @@ function AIRiskKnowledgeGraph() {
     return () => sim.stop();
   }, [graphData, handleNodeClick]);
 
-  const af = filter.sysType || filter.domain || filter.search || filter.minSeverity > 1;
+  const af = filter.sysType || filter.domain || filter.subdomain || filter.search || filter.minSeverity > 1;
 
   return (
     <div style={{width:"100vw",height:"100vh",background:"#0a0a1a",display:"flex",flexDirection:"column",fontFamily:"'Noto Sans TC',sans-serif",overflow:"hidden",position:"relative"}}>
@@ -483,7 +488,7 @@ function AIRiskKnowledgeGraph() {
           </div>
 
           <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:6}}>
-            <button onClick={()=>setFilter({sysType:null,domain:null,search:"",minSeverity:1})} style={{...cs,background:!af?"#0f3460":"#1a1a2e",color:!af?"#4fc3f7":"#556"}}>全部</button>
+            <button onClick={()=>setFilter({sysType:null,domain:null,subdomain:null,search:"",minSeverity:1})} style={{...cs,background:!af?"#0f3460":"#1a1a2e",color:!af?"#4fc3f7":"#556"}}>全部</button>
             {SYS_TYPES.map(t=>(
               <button key={t} onClick={()=>setFilter(f=>({...f,sysType:f.sysType===t?null:t,domain:null}))} style={{...cs,background:filter.sysType===t?"#4a148c":"#1a1a2e",color:filter.sysType===t?"#ce93d8":"#556"}}>
                 {SYS_TYPE_ZH[t]}
@@ -509,7 +514,7 @@ function AIRiskKnowledgeGraph() {
                 {v.l}
               </button>
             ))}
-            {af && <span style={{color:"#4fc3f7",marginLeft:"auto",cursor:"pointer",fontSize:9}} onClick={()=>setFilter({sysType:null,domain:null,search:"",minSeverity:1})}>✕ 清除篩選</span>}
+            {af && <span style={{color:"#4fc3f7",marginLeft:"auto",cursor:"pointer",fontSize:9}} onClick={()=>setFilter({sysType:null,domain:null,subdomain:null,search:"",minSeverity:1})}>✕ 清除篩選</span>}
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:9,color:"#556"}}>
             {viewMode==="domain" && DOMAINS.map(d=>(
@@ -546,7 +551,6 @@ function AIRiskKnowledgeGraph() {
 
 const cs = {border:"1px solid #2a2a3e",borderRadius:14,padding:"3px 9px",fontSize:10,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"'Noto Sans TC',sans-serif"};
 
-    
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(AIRiskKnowledgeGraph));
   </script>
