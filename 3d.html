@@ -68,7 +68,10 @@
 
   <div id="header">
     <h1>🌐 AI 風險知識圖譜 3D <span style="font-size:13px;color:#556;font-weight:400;">v1.0</span></h1>
-    <div class="sub">AI Risk Knowledge Graph 3D — Designed by Peter Pan（潘世鳴）</div>
+    <div class="sub">AI Risk Knowledge Graph 3D — Designed by Peter Pan（潘世鳴）
+      <a href="./" style="color:#4fc3f7;margin-left:8px;text-decoration:none;font-size:12px;">🕸️ 2D 版本</a>
+      <a href="https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677" target="_blank" rel="noopener noreferrer" style="color:#4fc3f7;margin-left:8px;text-decoration:none;font-size:12px;">📬 Contact me</a>
+    </div>
     <div id="legend"></div>
   </div>
 
@@ -85,6 +88,10 @@
     <button onclick="toggleSpin()">🔄 自動旋轉</button>
   </div>
 
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three-spritetext@1"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/d3-force-3d@3"></script>
   <script src="https://unpkg.com/3d-force-graph@1"></script>
   <script>
     // ============ DATA ============
@@ -509,6 +516,5 @@ TW_RISK_TYPES.forEach(t => TW_T_COLOR[t.id] = t.color);
       spinning = !spinning;
     }
   </script>
-  <script src="https://unpkg.com/three-spritetext"></script>
 </body>
 </html>

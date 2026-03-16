@@ -461,6 +461,7 @@ function AIRiskKnowledgeGraph() {
               AI Risk Knowledge Graph — Designed by Peter Pan（潘世鳴）
               <a href="https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677" target="_blank" rel="noopener noreferrer" style={{color:"#4fc3f7",marginLeft:8,textDecoration:"none",fontSize:12}}>📬 Contact me</a>
               <a href="3d.html" style={{color:"#ce93d8",marginLeft:8,textDecoration:"none",fontSize:12}}>🌐 3D 版本</a>
+              <span style={{marginLeft:8,fontSize:12,color:"#556"}}>瀏覽人次: <img src="https://count.getloli.com/get/@peterbear8-ai-risk-kg?theme=rule34" alt="visitors" style={{height:14,verticalAlign:"middle"}} /></span>
             </div>
           </div>
           <button onClick={()=>setShowFilters(v=>!v)} style={{background:showFilters?"#0f3460":"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:8,padding:"6px 10px",color:showFilters?"#4fc3f7":"#667",fontSize:14,cursor:"pointer"}}>
@@ -545,7 +546,6 @@ function AIRiskKnowledgeGraph() {
 
       <div style={{padding:"3px 16px 5px",fontSize:13,color:"#334",textAlign:"center",background:"#0a0a1a"}}>
         節點: {graphData.nodes.length} | 邊: {graphData.links.length} | 情境: {graphData.nodes.filter(n=>n.type==="scenario").length} | 控制: {graphData.nodes.filter(n=>n.type==="control").length}
-        <span style={{marginLeft:12}}>瀏覽人次: <img src="https://count.getloli.com/get/@peterbear8-ai-risk-kg?theme=rule34" alt="visitors" style={{height:16,verticalAlign:"middle",display:"inline"}} /></span>
       </div>
 
       <DetailPanel node={selectedNode} onClose={()=>setSelectedNode(null)} />
