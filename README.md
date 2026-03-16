@@ -3,7 +3,7 @@
 > 互動式 AI 風險知識圖譜 — 120 個風險情境、6 大領域、24 子領域、跨框架整合
 
 **Designed by Peter Pan（潘世鳴）**
-This work is led by Peter Pan. You can [connect with me on LinkedIn.]([https://github.com](https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677)
+This work is led by Peter Pan. You can [connect with me on LinkedIn](https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677)
 
 ## 🔗 線上展示
 
@@ -70,7 +70,7 @@ This work is led by Peter Pan. You can [connect with me on LinkedIn.]([https://g
 - 台灣 AI 基本法
 
 ## Contact me
-This work is led by Peter Pan. You can [connect with me on LinkedIn.]([https://github.com](https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677)
+This work is led by Peter Pan. You can [connect with me on LinkedIn](https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677)
 
 ## 📄 License
 
