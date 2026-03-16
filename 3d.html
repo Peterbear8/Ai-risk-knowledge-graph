@@ -423,27 +423,34 @@ TW_RISK_TYPES.forEach(t => TW_T_COLOR[t.id] = t.color);
         return false; // use default sphere
       })
       .d3Force("charge", d3.forceManyBody().strength(n => {
-        if (n.type === "domain") return -300;
-        if (n.type === "subdomain") return -100;
-        if (n.type === "sysType") return -120;
-        return -20;
+        if (n.type === "domain") return -800;
+        if (n.type === "subdomain") return -300;
+        if (n.type === "sysType") return -400;
+        if (n.type === "control") return -100;
+        return -60;
       }))
       .d3Force("link", d3.forceLink().distance(l => {
-        if (l.source?.type === "subdomain" || l.target?.type === "domain") return 60;
-        if (l.source?.type === "sysType" || l.target?.type === "sysType") return 100;
-        return 40;
-      }))
-      .warmupTicks(100)
-      .cooldownTicks(0);
+        const s = l.source?.type || l.source;
+        const t = l.target?.type || l.target;
+        if (s === "subdomain" || t === "domain") return 120;
+        if (s === "sysType" || t === "sysType") return 200;
+        if (s === "control" || t === "control") return 80;
+        return 70;
+      }).strength(0.3))
+      .d3Force("center", d3.forceCenter(0, 0, 0).strength(0.05))
+      .warmupTicks(200)
+      .cooldownTicks(0)
+      .cooldownTime(5000);
 
     // Auto-rotate
     let angle = 0;
     function animate() {
       if (spinning) {
-        angle += 0.002;
+        angle += 0.0015;
         graph.cameraPosition({
-          x: 400 * Math.sin(angle),
-          z: 400 * Math.cos(angle)
+          x: 700 * Math.sin(angle),
+          z: 700 * Math.cos(angle),
+          y: 200
         });
       }
       requestAnimationFrame(animate);
@@ -508,7 +515,7 @@ TW_RISK_TYPES.forEach(t => TW_T_COLOR[t.id] = t.color);
     }
 
     function resetCamera() {
-      graph.cameraPosition({ x: 0, y: 0, z: 500 }, { x: 0, y: 0, z: 0 }, 1000);
+      graph.cameraPosition({ x: 0, y: 200, z: 700 }, { x: 0, y: 0, z: 0 }, 1000);
       spinning = true;
     }
 
