@@ -3,6 +3,7 @@
 > 互動式 AI 風險知識圖譜 — 120 個風險情境、6 大領域、24 子領域、跨框架整合
 
 **Designed by Peter Pan（潘世鳴）**
+This work is led by Peter Pan. You can [connect with me on LinkedIn.]([https://github.com](https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677))
 
 ## 🔗 線上展示
 
@@ -18,7 +19,7 @@
 | 子領域 | 24 |
 | AI 系統類型 | 8 |
 
-## 🏗️ 分類體系：AIRT-TAXONOMY v1
+## 🏗️ 分類體系：
 
 全新設計的 AI 風險分類體系，融合多個國際框架的優點：
 
@@ -67,6 +68,9 @@
 - MITRE ATLAS（AI 對抗威脅）
 - OWASP LLM Top 10
 - 台灣 AI 基本法
+
+## Contact me
+This work is led by Peter Pan. You can [connect with me on LinkedIn.]([https://github.com](https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677))
 
 ## 📄 License
 
