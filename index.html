@@ -22,8 +22,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="text/babel">
-import { useState, useEffect, useRef, useCallback } from "react";
-import * as d3 from "d3";
+const { useState, useEffect, useRef, useCallback } = React;
 
 const DOMAINS = [
   { id: "D1", name: "資料與隱私風險", en: "Data & Privacy", color: "#4A90D9", tw_type: 1 },
@@ -435,7 +434,7 @@ function DetailPanel({ node, onClose }) {
   );
 }
 
-export default function AIRiskKnowledgeGraph() {
+function App() {
   const svgRef = useRef(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [filter, setFilter] = useState({ sysType: null, domain: null, subdomain: null, search: "", minSeverity: 1 });
