@@ -3788,13 +3788,13 @@ function App() {
   }, "\uD83D\uDD78\uFE0F AI \u98A8\u96AA\u77E5\u8B58\u5716\u8B5C ", /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 15,
-      color: "#556",
+      color: "#778899",
       fontWeight: 400
     }
   }, "v1.2")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
-      color: "#556",
+      color: "#8899aa",
       marginTop: 1
     }
   }, "AI Risk Knowledge Graph \u2014 Designed by Peter Pan\uFF08\u6F58\u4E16\u9CF4\uFF09", /*#__PURE__*/React.createElement("a", {
@@ -3811,7 +3811,7 @@ function App() {
     style: {
       marginLeft: 8,
       fontSize: 12,
-      color: "#556"
+      color: "#8899aa"
     }
   }, "\u700F\u89BD\u4EBA\u6B21: ", /*#__PURE__*/React.createElement("img", {
     src: "https://api.visitorbadge.io/api/visitors?path=peterbear8-ai-risk-kg&countColor=%23556677&style=flat&labelStyle=none",
@@ -3827,7 +3827,7 @@ function App() {
       border: "1px solid #2a2a3e",
       borderRadius: 8,
       padding: "6px 10px",
-      color: showFilters ? "#4fc3f7" : "#667",
+      color: showFilters ? "#4fc3f7" : "#99aabb",
       fontSize: 14,
       cursor: "pointer"
     }
@@ -3869,7 +3869,7 @@ function App() {
       transform: "translateY(-50%)",
       background: "none",
       border: "none",
-      color: "#667",
+      color: "#99aabb",
       fontSize: 16,
       cursor: "pointer"
     }
@@ -3889,7 +3889,7 @@ function App() {
   }, /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 12,
-      color: "#667",
+      color: "#8899aa",
       flexShrink: 0
     }
   }, "\u56B4\u91CD\u5EA6 \u2265"), [1, 2, 3, 4, 5].map(n => /*#__PURE__*/React.createElement("button", {
@@ -3901,7 +3901,7 @@ function App() {
     style: {
       ...cs,
       background: filter.minSeverity === n ? "#7f1d1d" : "#1a1a2e",
-      color: filter.minSeverity === n ? "#fca5a5" : "#556",
+      color: filter.minSeverity === n ? "#fca5a5" : "#aabbcc",
       minWidth: 28,
       textAlign: "center",
       padding: "3px 6px"
@@ -3924,7 +3924,7 @@ function App() {
     style: {
       ...cs,
       background: !af ? "#0f3460" : "#1a1a2e",
-      color: !af ? "#4fc3f7" : "#556"
+      color: !af ? "#4fc3f7" : "#99aabb"
     }
   }, "\u5168\u90E8"), SYS_TYPES.map(t => /*#__PURE__*/React.createElement("button", {
     key: t,
@@ -3936,7 +3936,7 @@ function App() {
     style: {
       ...cs,
       background: filter.sysType === t ? "#4a148c" : "#1a1a2e",
-      color: filter.sysType === t ? "#ce93d8" : "#556"
+      color: filter.sysType === t ? "#ce93d8" : "#99aabb"
     }
   }, SYS_TYPE_ZH[t]))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3944,7 +3944,7 @@ function App() {
       flexWrap: "wrap",
       gap: 3,
       fontSize: 13,
-      color: "#556"
+      color: "#99aabb"
     }
   }, DOMAINS.map(d => /*#__PURE__*/React.createElement("span", {
     key: d.id,
@@ -3972,28 +3972,97 @@ function App() {
     style: {
       display: "flex",
       gap: 4,
-      marginBottom: 4
+      marginBottom: 4,
+      flexWrap: "wrap",
+      alignItems: "center"
     }
-  }, [{
-    k: "domain",
-    l: "風險領域"
-  }, {
-    k: "principle",
-    l: "🇹🇼 法規原則"
-  }, {
-    k: "riskType",
-    l: "🇹🇼 風險類型"
-  }].map(v => /*#__PURE__*/React.createElement("button", {
-    key: v.k,
-    onClick: () => setViewMode(v.k),
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setViewMode("domain"),
     style: {
       ...cs,
-      background: viewMode === v.k ? "#0f3460" : "#1a1a2e",
-      color: viewMode === v.k ? "#4fc3f7" : "#556",
+      background: viewMode === "domain" ? "#0f3460" : "#1a1a2e",
+      color: viewMode === "domain" ? "#4fc3f7" : "#99aabb",
       fontSize: 13,
       padding: "2px 8px"
     }
-  }, v.l)), af && /*#__PURE__*/React.createElement("span", {
+  }, "\u98A8\u96AA\u9818\u57DF"), viewMode === "domain" && DOMAINS.map(d => /*#__PURE__*/React.createElement("span", {
+    key: d.id,
+    onClick: () => setFilter(f => ({
+      ...f,
+      domain: f.domain === d.id ? null : d.id,
+      subdomain: null,
+      sysType: null
+    })),
+    style: {
+      cursor: "pointer",
+      padding: "2px 7px",
+      borderRadius: 12,
+      fontSize: 12,
+      background: filter.domain === d.id ? d.color + "30" : "transparent",
+      border: filter.domain === d.id ? "1px solid " + d.color + "60" : "1px solid transparent",
+      transition: "all 0.2s"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: d.color
+    }
+  }, "\u25CF"), " ", d.name.replace("風險", ""))), /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 1,
+      height: 16,
+      background: "#2a2a3e",
+      margin: "0 2px",
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setViewMode("principle"),
+    style: {
+      ...cs,
+      background: viewMode === "principle" ? "#0f3460" : "#1a1a2e",
+      color: viewMode === "principle" ? "#4fc3f7" : "#99aabb",
+      fontSize: 13,
+      padding: "2px 8px"
+    }
+  }, "\uD83C\uDDF9\uD83C\uDDFC \u6CD5\u898F\u539F\u5247"), viewMode === "principle" && TW_PRINCIPLES.map(p => /*#__PURE__*/React.createElement("span", {
+    key: p.id,
+    style: {
+      padding: "1px 4px",
+      fontSize: 12,
+      color: "#bbc8d4"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: p.color
+    }
+  }, "\u25CF"), " ", p.id)), /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 1,
+      height: 16,
+      background: "#2a2a3e",
+      margin: "0 2px",
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setViewMode("riskType"),
+    style: {
+      ...cs,
+      background: viewMode === "riskType" ? "#0f3460" : "#1a1a2e",
+      color: viewMode === "riskType" ? "#4fc3f7" : "#99aabb",
+      fontSize: 13,
+      padding: "2px 8px"
+    }
+  }, "\uD83C\uDDF9\uD83C\uDDFC \u98A8\u96AA\u985E\u578B"), viewMode === "riskType" && TW_RISK_TYPES.map(t => /*#__PURE__*/React.createElement("span", {
+    key: t.id,
+    style: {
+      padding: "1px 4px",
+      fontSize: 12,
+      color: "#bbc8d4"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: t.color
+    }
+  }, "\u25CF"), " ", t.name)), af && /*#__PURE__*/React.createElement("span", {
     style: {
       color: "#4fc3f7",
       marginLeft: "auto",
@@ -4007,42 +4076,7 @@ function App() {
       search: "",
       minSeverity: 1
     })
-  }, "\u2715 \u6E05\u9664\u7BE9\u9078")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 3,
-      fontSize: 13,
-      color: "#556"
-    }
-  }, viewMode === "domain" && DOMAINS.map(d => /*#__PURE__*/React.createElement("span", {
-    key: d.id,
-    style: {
-      padding: "1px 4px"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: d.color
-    }
-  }, "\u25CF"), " ", d.name.replace("風險", ""))), viewMode === "principle" && TW_PRINCIPLES.map(p => /*#__PURE__*/React.createElement("span", {
-    key: p.id,
-    style: {
-      padding: "1px 4px"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: p.color
-    }
-  }, "\u25CF"), " ", p.id)), viewMode === "riskType" && TW_RISK_TYPES.map(t => /*#__PURE__*/React.createElement("span", {
-    key: t.id,
-    style: {
-      padding: "1px 4px"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: t.color
-    }
-  }, "\u25CF"), " ", t.name)))), /*#__PURE__*/React.createElement("div", {
+  }, "\u2715 \u6E05\u9664\u7BE9\u9078"))), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       position: "relative"
@@ -4057,7 +4091,7 @@ function App() {
     style: {
       padding: "3px 16px 5px",
       fontSize: 13,
-      color: "#334",
+      color: "#778899",
       textAlign: "center",
       background: "#0a0a1a"
     }
