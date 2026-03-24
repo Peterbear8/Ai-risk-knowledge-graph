@@ -12,17 +12,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #0a0a1a; overflow: hidden; font-family: 'Noto Sans TC', sans-serif; }
+      body { background: #f0f2f5; overflow: hidden; font-family: 'Noto Sans TC', sans-serif; color: #2d3748; }
     </style>
   </head>
   <body>
     <div id="root"></div>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script>if(typeof React==="undefined"){document.write('<scr'+'ipt crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"><\/scr'+'ipt>')}</script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script>if(typeof ReactDOM==="undefined"){document.write('<scr'+'ipt crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"><\/scr'+'ipt>')}</script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script>if(typeof d3==="undefined"){document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"><\/scr'+'ipt>')}</script>
     <script>
 const {
   useState,
@@ -3470,7 +3467,7 @@ function buildGraphData(filter, viewMode) {
       source: sc.id,
       target: sc.sub,
       type: "belongs_to",
-      color: "#444",
+      color: "#cbd5e0",
       width: 0.8
     });
   });
@@ -3539,15 +3536,15 @@ function DetailPanel({
       left: 0,
       right: 0,
       maxHeight: "55vh",
-      background: "#16213e",
-      borderTop: "2px solid #0f3460",
+      background: "#ffffff",
+      borderTop: "2px solid #e0e4e8",
       borderRadius: "16px 16px 0 0",
       padding: "18px 22px 26px",
       overflowY: "auto",
       zIndex: 100,
       fontFamily: "'Noto Sans TC',sans-serif",
-      color: "#e0e0e0",
-      boxShadow: "0 -4px 30px rgba(0,0,0,0.6)"
+      color: "#2d3748",
+      boxShadow: "0 -4px 30px rgba(0,0,0,0.1)"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3560,7 +3557,7 @@ function DetailPanel({
     style: {
       fontSize: 21,
       fontWeight: 700,
-      color: "#fff",
+      color: "#1a202c",
       maxWidth: "85%"
     }
   }, node.label), /*#__PURE__*/React.createElement("button", {
@@ -3568,7 +3565,7 @@ function DetailPanel({
     style: {
       background: "none",
       border: "none",
-      color: "#aaa",
+      color: "#718096",
       fontSize: 26,
       cursor: "pointer",
       padding: "0 4px"
@@ -3576,17 +3573,17 @@ function DetailPanel({
   }, "\u2715")), node.en && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16,
-      color: "#d4d4d8",
+      color: "#718096",
       marginBottom: node.desc ? 10 : 14
     }
   }, node.en), node.desc && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16,
-      color: "#c8d6e5",
+      color: "#4a5568",
       lineHeight: 1.7,
       marginBottom: 14,
       padding: "10px 12px",
-      background: "#1a2744",
+      background: "#f7f8fa",
       borderRadius: 8,
       borderLeft: "3px solid " + ({
         scenario: node.color,
@@ -3600,7 +3597,7 @@ function DetailPanel({
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\u56B4\u91CD\u5EA6:"), " ", /*#__PURE__*/React.createElement("span", {
     style: {
@@ -3608,31 +3605,31 @@ function DetailPanel({
     }
   }, "★".repeat(sev), "☆".repeat(5 - sev))), node.source && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\u98A8\u96AA\u4F86\u6E90:"), " ", node.source), node.actor && node.actor.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\u8CAC\u4EFB\u89D2\u8272:"), " ", node.actor.join(", ")), node.timing && node.timing.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\u751F\u547D\u9031\u671F:"), " ", node.timing.join(", ")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\u7CFB\u7D71\u985E\u578B:"), " ", node.sysType?.map(t => SYS_TYPE_ZH[t] || t).join(", ")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\u884C\u696D:"), " ", node.industry?.join(", ")), node.twP && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\uD83C\uDDF9\uD83C\uDDFC \u6CD5\u898F\u539F\u5247:"), " ", node.twP.join(", ")), node.twT && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#888"
+      color: "#718096"
     }
   }, "\uD83C\uDDF9\uD83C\uDDFC \u98A8\u96AA\u985E\u578B:"), " ", TW_RISK_TYPES.find(t => t.id === node.twT)?.name || node.twT)), node.type === "control" && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3641,17 +3638,17 @@ function DetailPanel({
   }, "\u63A7\u5236\u985E\u578B: ", node.controlType), node.type === "domain" && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16,
-      color: "#aaa"
+      color: "#718096"
     }
   }, "\u9EDE\u64CA\u9818\u57DF\u53EF\u7BE9\u9078\u8A72\u9818\u57DF\u4E0B\u6240\u6709\u98A8\u96AA\u60C5\u5883", /*#__PURE__*/React.createElement("br", null), "\u518D\u6B21\u9EDE\u64CA\u53D6\u6D88\u7BE9\u9078"), node.type === "subdomain" && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16,
-      color: "#aaa"
+      color: "#718096"
     }
   }, "\u9EDE\u64CA\u5B50\u9818\u57DF\u53EF\u805A\u7126\u8A72\u5B50\u9818\u57DF\u7684\u98A8\u96AA\u60C5\u5883", /*#__PURE__*/React.createElement("br", null), "\u518D\u6B21\u9EDE\u64CA\u53D6\u6D88\u7BE9\u9078"), node.type === "sysType" && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16,
-      color: "#aaa"
+      color: "#718096"
     }
   }, "AI \u7CFB\u7D71\u67B6\u69CB\u985E\u578B", /*#__PURE__*/React.createElement("br", null), "\u53EF\u900F\u904E\u4E0A\u65B9\u6309\u9215\u7BE9\u9078"));
 }
@@ -3763,7 +3760,7 @@ function App() {
     style: {
       width: "100vw",
       height: "100vh",
-      background: "#0a0a1a",
+      background: "#f0f2f5",
       display: "flex",
       flexDirection: "column",
       fontFamily: "'Noto Sans TC',sans-serif",
@@ -3773,7 +3770,7 @@ function App() {
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "10px 16px 4px",
-      background: "linear-gradient(180deg,#16213e 0%,#0a0a1a 100%)"
+      background: "linear-gradient(180deg,#ffffff 0%,#f0f2f5 100%)"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3785,19 +3782,19 @@ function App() {
     style: {
       fontSize: 20,
       fontWeight: 700,
-      color: "#fff",
+      color: "#1a202c",
       letterSpacing: 1
     }
   }, "\uD83D\uDD78\uFE0F AI \u98A8\u96AA\u77E5\u8B58\u5716\u8B5C ", /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 15,
-      color: "#d4d4d8",
+      color: "#718096",
       fontWeight: 400
     }
   }, "v1.2")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
-      color: "#d4d4d8",
+      color: "#718096",
       marginTop: 1
     }
   }, "AI Risk Knowledge Graph \u2014 Designed by Peter Pan\uFF08\u6F58\u4E16\u9CF4\uFF09", /*#__PURE__*/React.createElement("a", {
@@ -3814,7 +3811,7 @@ function App() {
     style: {
       marginLeft: 8,
       fontSize: 12,
-      color: "#d4d4d8"
+      color: "#718096"
     }
   }, "\u700F\u89BD\u4EBA\u6B21: ", /*#__PURE__*/React.createElement("img", {
     src: "https://api.visitorbadge.io/api/visitors?path=peterbear8-ai-risk-kg&countColor=%23556677&style=flat&labelStyle=none",
@@ -3826,11 +3823,11 @@ function App() {
   })))), /*#__PURE__*/React.createElement("button", {
     onClick: () => setShowFilters(v => !v),
     style: {
-      background: showFilters ? "#0f3460" : "#1a1a2e",
-      border: "1px solid #2a2a3e",
+      background: showFilters ? "#e8f0fe" : "#ffffff",
+      border: "1px solid #d0d5dd",
       borderRadius: 8,
       padding: "6px 10px",
-      color: showFilters ? "#4fc3f7" : "#99aabb",
+      color: showFilters ? "#1a73e8" : "#4a5568",
       fontSize: 14,
       cursor: "pointer"
     }
@@ -3851,8 +3848,8 @@ function App() {
     style: {
       width: "100%",
       padding: "8px 14px",
-      background: "#1a1a2e",
-      border: "1px solid #2a2a3e",
+      background: "#ffffff",
+      border: "1px solid #d0d5dd",
       borderRadius: 10,
       color: "#ddd",
       fontSize: 14,
@@ -3872,15 +3869,15 @@ function App() {
       transform: "translateY(-50%)",
       background: "none",
       border: "none",
-      color: "#d4d4d8",
+      color: "#4a5568",
       fontSize: 16,
       cursor: "pointer"
     }
   }, "\u2715"))), showFilters && /*#__PURE__*/React.createElement("div", {
     style: {
       padding: "6px 16px 8px",
-      background: "#0d1528",
-      borderBottom: "1px solid #1a2a4a"
+      background: "#ffffff",
+      borderBottom: "1px solid #e0e4e8"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3892,7 +3889,7 @@ function App() {
   }, /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 12,
-      color: "#d4d4d8",
+      color: "#718096",
       flexShrink: 0
     }
   }, "\u56B4\u91CD\u5EA6 \u2265"), [1, 2, 3, 4, 5].map(n => /*#__PURE__*/React.createElement("button", {
@@ -3903,8 +3900,8 @@ function App() {
     })),
     style: {
       ...cs,
-      background: filter.minSeverity === n ? "#7f1d1d" : "#1a1a2e",
-      color: filter.minSeverity === n ? "#fca5a5" : "#aabbcc",
+      background: filter.minSeverity === n ? "#fee2e2" : "#ffffff",
+      color: filter.minSeverity === n ? "#dc2626" : "#4a5568",
       minWidth: 28,
       textAlign: "center",
       padding: "3px 6px"
@@ -3926,8 +3923,8 @@ function App() {
     }),
     style: {
       ...cs,
-      background: !af ? "#0f3460" : "#1a1a2e",
-      color: !af ? "#4fc3f7" : "#99aabb"
+      background: !af ? "#e8f0fe" : "#ffffff",
+      color: !af ? "#1a73e8" : "#4a5568"
     }
   }, "\u5168\u90E8"), SYS_TYPES.map(t => /*#__PURE__*/React.createElement("button", {
     key: t,
@@ -3938,8 +3935,8 @@ function App() {
     })),
     style: {
       ...cs,
-      background: filter.sysType === t ? "#4a148c" : "#1a1a2e",
-      color: filter.sysType === t ? "#ce93d8" : "#99aabb"
+      background: filter.sysType === t ? "#f3e5f5" : "#ffffff",
+      color: filter.sysType === t ? "#7b1fa2" : "#4a5568"
     }
   }, SYS_TYPE_ZH[t]))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3947,7 +3944,7 @@ function App() {
       flexWrap: "wrap",
       gap: 3,
       fontSize: 13,
-      color: "#d4d4d8"
+      color: "#4a5568"
     }
   }, DOMAINS.map(d => /*#__PURE__*/React.createElement("span", {
     key: d.id,
@@ -3960,8 +3957,8 @@ function App() {
       cursor: "pointer",
       padding: "2px 6px",
       borderRadius: 8,
-      background: filter.domain === d.id ? d.color + "25" : "transparent",
-      border: filter.domain === d.id ? `1px solid ${d.color}50` : "1px solid transparent"
+      background: filter.domain === d.id ? d.color + "20" : "transparent",
+      border: filter.domain === d.id ? `1px solid ${d.color}80` : "1px solid transparent"
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -3983,8 +3980,8 @@ function App() {
     onClick: () => setViewMode("domain"),
     style: {
       ...cs,
-      background: viewMode === "domain" ? "#0f3460" : "#1a1a2e",
-      color: viewMode === "domain" ? "#4fc3f7" : "#99aabb",
+      background: viewMode === "domain" ? "#e8f0fe" : "#ffffff",
+      color: viewMode === "domain" ? "#1a73e8" : "#4a5568",
       fontSize: 13,
       padding: "2px 8px"
     }
@@ -4001,8 +3998,8 @@ function App() {
       padding: "2px 7px",
       borderRadius: 12,
       fontSize: 12,
-      background: filter.domain === d.id ? d.color + "30" : "transparent",
-      border: filter.domain === d.id ? "1px solid " + d.color + "60" : "1px solid transparent",
+      background: filter.domain === d.id ? d.color + "20" : "#ffffff",
+      border: filter.domain === d.id ? "1px solid " + d.color + "80" : "1px solid #e0e4e8",
       transition: "all 0.2s"
     }
   }, /*#__PURE__*/React.createElement("span", {
@@ -4013,7 +4010,7 @@ function App() {
     style: {
       width: 1,
       height: 16,
-      background: "#2a2a3e",
+      background: "#e0e4e8",
       margin: "0 2px",
       flexShrink: 0
     }
@@ -4021,8 +4018,8 @@ function App() {
     onClick: () => setViewMode("principle"),
     style: {
       ...cs,
-      background: viewMode === "principle" ? "#0f3460" : "#1a1a2e",
-      color: viewMode === "principle" ? "#4fc3f7" : "#99aabb",
+      background: viewMode === "principle" ? "#e8f0fe" : "#ffffff",
+      color: viewMode === "principle" ? "#1a73e8" : "#4a5568",
       fontSize: 13,
       padding: "2px 8px"
     }
@@ -4031,7 +4028,7 @@ function App() {
     style: {
       padding: "1px 4px",
       fontSize: 12,
-      color: "#d4d4d8"
+      color: "#4a5568"
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -4041,7 +4038,7 @@ function App() {
     style: {
       width: 1,
       height: 16,
-      background: "#2a2a3e",
+      background: "#e0e4e8",
       margin: "0 2px",
       flexShrink: 0
     }
@@ -4049,8 +4046,8 @@ function App() {
     onClick: () => setViewMode("riskType"),
     style: {
       ...cs,
-      background: viewMode === "riskType" ? "#0f3460" : "#1a1a2e",
-      color: viewMode === "riskType" ? "#4fc3f7" : "#99aabb",
+      background: viewMode === "riskType" ? "#e8f0fe" : "#ffffff",
+      color: viewMode === "riskType" ? "#4fc3f7" : "#4a5568",
       fontSize: 13,
       padding: "2px 8px"
     }
@@ -4059,7 +4056,7 @@ function App() {
     style: {
       padding: "1px 4px",
       fontSize: 12,
-      color: "#d4d4d8"
+      color: "#4a5568"
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -4067,7 +4064,7 @@ function App() {
     }
   }, "\u25CF"), " ", t.name)), af && /*#__PURE__*/React.createElement("span", {
     style: {
-      color: "#4fc3f7",
+      color: "#1a73e8",
       marginLeft: "auto",
       cursor: "pointer",
       fontSize: 13
@@ -4094,9 +4091,9 @@ function App() {
     style: {
       padding: "3px 16px 5px",
       fontSize: 13,
-      color: "#d4d4d8",
+      color: "#718096",
       textAlign: "center",
-      background: "#0a0a1a"
+      background: "#f0f2f5"
     }
   }, "\u7BC0\u9EDE: ", graphData.nodes.length, " | \u908A: ", graphData.links.length, " | \u60C5\u5883: ", graphData.nodes.filter(n => n.type === "scenario").length, " | \u63A7\u5236: ", graphData.nodes.filter(n => n.type === "control").length), /*#__PURE__*/React.createElement(DetailPanel, {
     node: selectedNode,
@@ -4104,7 +4101,7 @@ function App() {
   }));
 }
 const cs = {
-  border: "1px solid #2a2a3e",
+  border: "1px solid #d0d5dd",
   borderRadius: 14,
   padding: "4px 10px",
   fontSize: 14,
