@@ -1,205 +1,29 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI 風險知識圖譜 3D | AI Risk Knowledge Graph</title>
-  <meta name="description" content="209 個 AI 風險情境的 3D 互動式知識圖譜，涵蓋 6 大領域、24 子領域。Designed by Peter Pan（潘世鳴）">
-  <meta property="og:title" content="AI 風險知識圖譜 3D | AI Risk Knowledge Graph">
-  <meta property="og:description" content="3D 互動式 AI 風險知識圖譜 — 209 個風險情境、6 大領域、WebGL 星團視覺化">
-  <meta property="og:type" content="website">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; font-family: 'Noto Sans TC', sans-serif; color: #e0e0e0; }
-    #graph-container { width: 100vw; height: 100vh; }
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 風險知識圖譜 | AI Risk Knowledge Graph</title>
+    <meta name="description" content="209 個 AI 風險情境的互動式知識圖譜，涵蓋 6 大領域、24 子領域，支援多維度篩選與台灣法規視角切換。Designed by Peter Pan（潘世鳴）">
+    <meta property="og:title" content="AI 風險知識圖譜 | AI Risk Knowledge Graph">
+    <meta property="og:description" content="互動式 AI 風險知識圖譜 — 209 個風險情境、6 大領域、跨框架整合">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕸️</text></svg>">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #0a0a1a; overflow: hidden; font-family: 'Noto Sans TC', sans-serif; }
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
 
-    /* HUD overlay */
-    #hud { position: fixed; top: 0; left: 0; right: 0; z-index: 10; pointer-events: none; }
-    #hud > * { pointer-events: auto; }
-
-    #top-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
-    }
-    #title-area h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; color: #fff; }
-    #title-area .sub { font-size: 12px; color: #667; margin-top: 2px; letter-spacing: 0.5px; }
-
-    #stats {
-      display: flex; gap: 16px; font-size: 12px; color: #889;
-    }
-    #stats span { display: flex; align-items: center; gap: 4px; }
-    #stats .num { color: #4fc3f7; font-weight: 700; font-size: 14px; }
-
-    /* Filter bar */
-    #filter-bar {
-      display: flex; gap: 6px; padding: 8px 20px; flex-wrap: wrap; align-items: center;
-      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .fbtn {
-      border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;
-      padding: 4px 12px; font-size: 13px; cursor: pointer; white-space: nowrap;
-      background: rgba(255,255,255,0.04); color: #99a; transition: all 0.2s;
-      font-family: 'Noto Sans TC', sans-serif; outline: none;
-    }
-    .fbtn:hover { background: rgba(255,255,255,0.1); color: #ccc; }
-    .fbtn.active { background: rgba(79,195,247,0.15); border-color: rgba(79,195,247,0.4); color: #4fc3f7; }
-    .fbtn.domain-active { color: #fff; }
-    .sep { width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 4px; flex-shrink: 0; }
-
-    #search-box {
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px; padding: 4px 14px; font-size: 13px; color: #ccc;
-      outline: none; width: 160px; font-family: 'Noto Sans TC', sans-serif;
-    }
-    #search-box::placeholder { color: #556; }
-    #search-box:focus { border-color: rgba(79,195,247,0.4); background: rgba(255,255,255,0.08); }
-
-    /* Severity filter */
-    .sev-btn {
-      width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.04); color: #778; font-size: 11px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-      font-family: 'Noto Sans TC', sans-serif;
-    }
-    .sev-btn.active { background: rgba(231,76,60,0.2); border-color: rgba(231,76,60,0.5); color: #e74c3c; }
-
-    /* View mode */
-    #view-bar {
-      display: flex; gap: 4px; padding: 6px 20px; flex-wrap: wrap; align-items: center;
-      background: rgba(0,0,0,0.4);
-    }
-    #domain-btns { display: flex; gap: 4px; flex-wrap: wrap; }
-    #domain-btns .fbtn { font-size: 12px; padding: 3px 10px; border-radius: 12px; }
-    .vbtn {
-      border: none; border-radius: 12px; padding: 3px 10px; font-size: 12px;
-      cursor: pointer; background: transparent; color: #667;
-      font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s;
-    }
-    .vbtn.active { background: rgba(79,195,247,0.12); color: #4fc3f7; }
-
-    /* Legend */
-    #legend {
-      position: fixed; bottom: 16px; left: 16px; z-index: 10;
-      display: flex; flex-wrap: wrap; gap: 8px; max-width: 420px;
-    }
-    .legend-item { font-size: 11px; color: #889; display: flex; align-items: center; gap: 4px; }
-    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-    /* Detail panel */
-    #detail-panel {
-      position: fixed; bottom: 0; left: 0; right: 0; max-height: 50vh;
-      background: rgba(16,24,48,0.95); backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(79,195,247,0.2); border-radius: 16px 16px 0 0;
-      padding: 18px 22px 26px; overflow-y: auto; z-index: 100;
-      transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    #detail-panel.open { transform: translateY(0); }
-    #detail-panel .close-btn {
-      position: absolute; top: 14px; right: 18px; background: none; border: none;
-      color: #667; font-size: 22px; cursor: pointer;
-    }
-    #detail-panel h2 { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 4px; max-width: 90%; }
-    #detail-panel .en { font-size: 14px; color: #6688aa; margin-bottom: 10px; }
-    #detail-panel .desc {
-      font-size: 14px; color: #b0c4de; line-height: 1.7; margin-bottom: 14px;
-      padding: 10px 12px; background: rgba(255,255,255,0.04); border-radius: 8px;
-      border-left: 3px solid #4fc3f7;
-    }
-    #detail-panel .meta { font-size: 14px; line-height: 2.0; }
-    #detail-panel .meta .lbl { color: #667; }
-    #detail-panel .meta .val { color: #aabbcc; }
-
-    /* Zoom hint */
-    #zoom-hint {
-      position: fixed; bottom: 16px; right: 16px; z-index: 10;
-      font-size: 11px; color: #445; text-align: right; line-height: 1.6;
-    }
-
-    /* Loading */
-    #loading {
-      position: fixed; inset: 0; z-index: 1000; background: #000;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: opacity 0.8s;
-    }
-    #loading.hide { opacity: 0; pointer-events: none; }
-    #loading h2 { font-size: 20px; font-weight: 300; color: #4fc3f7; letter-spacing: 2px; margin-bottom: 8px; }
-    #loading p { font-size: 13px; color: #445; }
-    .spinner { width: 40px; height: 40px; border: 2px solid #112; border-top-color: #4fc3f7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-  <div id="loading">
-    <div class="spinner"></div>
-    <h2>AI RISK KNOWLEDGE GRAPH</h2>
-    <p>Loading 209 risk scenarios into 3D space...</p>
-  </div>
-
-  <div id="graph-container"></div>
-
-  <div id="hud">
-    <div id="top-bar">
-      <div id="title-area">
-        <h1>AI 風險知識圖譜 3D</h1>
-        <div class="sub">AI Risk Knowledge Graph — 209 Scenarios / 6 Domains / 24 Subdomains</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:16px">
-        <div id="stats">
-          <span>情境 <span class="num" id="s-scenarios">209</span></span>
-          <span>控制 <span class="num" id="s-controls">24</span></span>
-          <span>節點 <span class="num" id="s-nodes">0</span></span>
-          <span>連線 <span class="num" id="s-links">0</span></span>
-        </div>
-        <div style="display:flex;gap:4px;align-items:center">
-          <a href="index.html" style="padding:4px 10px;font-size:12px;color:#99aabb;text-decoration:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.04)">🌙 深色 2D</a>
-          <a href="index_light.html" style="padding:4px 10px;font-size:12px;color:#99aabb;text-decoration:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.04)">☀️ 亮色 2D</a>
-          <span style="padding:4px 10px;font-size:12px;font-weight:500;color:#4fc3f7;border:1px solid rgba(79,195,247,0.3);border-radius:8px;background:rgba(79,195,247,0.1)">🌐 3D</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="filter-bar">
-      <input type="text" id="search-box" placeholder="搜尋風險情境...">
-      <div class="sep"></div>
-      <button class="fbtn active" onclick="resetFilters()">全部</button>
-      <div class="sep"></div>
-      <span style="font-size:11px;color:#556;padding-right:2px">嚴重度≥</span>
-      <button class="sev-btn active" data-sev="1" onclick="setSeverity(1)">全</button>
-      <button class="sev-btn" data-sev="3" onclick="setSeverity(3)">3</button>
-      <button class="sev-btn" data-sev="4" onclick="setSeverity(4)">4</button>
-      <button class="sev-btn" data-sev="5" onclick="setSeverity(5)">5</button>
-    </div>
-
-    <div id="view-bar">
-      <button class="vbtn active" data-mode="domain" onclick="setViewMode('domain')">風險領域</button>
-      <div id="domain-btns"></div>
-      <div class="sep"></div>
-      <button class="vbtn" data-mode="principle" onclick="setViewMode('principle')">🇹🇼 法規原則</button>
-      <button class="vbtn" data-mode="riskType" onclick="setViewMode('riskType')">🇹🇼 風險類型</button>
-    </div>
-  </div>
-
-  <div id="legend"></div>
-
-  <div id="detail-panel">
-    <button class="close-btn" onclick="closeDetail()">✕</button>
-    <div id="detail-content"></div>
-  </div>
-
-  <div id="zoom-hint">
-    滾輪縮放 · 左鍵旋轉 · 右鍵平移<br>點擊節點查看詳情
-  </div>
-
-  <script src="https://unpkg.com/3d-force-graph@1.79.1/dist/3d-force-graph.min.js"></script>
-  <script>
-    if (typeof ForceGraph3D === "undefined") {
-      document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.79.1/dist/3d-force-graph.min.js"><\/scr'+'ipt>');
-    }
-  </script>
-  <script>
 const DOMAINS = [
   { id: "D1", name: "資料與隱私風險", en: "Data & Privacy", color: "#4A90D9", tw_type: 1 },
   { id: "D2", name: "模型安全風險", en: "Model Security", color: "#E74C3C", tw_type: 1 },
@@ -247,16 +71,16 @@ const SCENARIOS = [
   {id:"RS-D1.2-003",sub:"D1.2",title:"標註者偏見傳播",en:"Annotator Bias Propagation",desc:"數據標註人員將自身的文化偏見、語言偏好或認知偏差帶入標註結果。研究顯示，標註者的國籍、年齡、教育背景會系統性地影響對「仇恨言論」、「有害內容」等主觀標準的判斷。若標註團隊組成同質化（如全部為年輕男性工程師），偏見會被整個數據集繼承。",severity:3,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["公平與不歧視","問責"],twT:1,refs:{iso:"R3"}},
   {id:"RS-D1.2-004",sub:"D1.2",title:"時間偏移導致數據陳舊",en:"Temporal Drift Data Staleness",desc:"訓練數據反映的是過去的分佈特徵，但現實世界持續變化。例如 COVID-19 期間消費行為劇變，使基於疫情前數據訓練的信用風險模型和消費推薦系統表現大幅退化。金融領域中，市場結構的變化（如加密貨幣的興起）可能使歷史數據的預測價值歸零。",severity:3,sysType:["Traditional ML","Deep Learning"],industry:["Finance","Retail"],twP:["問責"],twT:1,refs:{iso:"R5",nist:"MEASURE 2.6"}},
   {id:"RS-D1.2-005",sub:"D1.2",title:"合成數據放大偏見",en:"Synthetic Data Bias Amplification",desc:"使用 AI 生成合成訓練數據時，若原始數據存在偏見，生成模型會學習並放大這些偏見。研究顯示「model collapse」現象：當 AI 生成的數據被用於訓練下一代 AI 時，少數群體的特徵會逐代被稀釋，最終形成偏見的正回饋迴路。這在 LLM 訓練數據日益依賴 AI 生成內容的趨勢下尤其危險。",severity:3,sysType:["Deep Learning","LLM Application"],industry:["General"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
-  {id:"RS-D1.3-001",sub:"D1.3",title:"模型記憶化攻擊",en:"Model Memorization Attack",desc:"大型語言模型會逐字記憶訓練數據中的特定片段。依據相關研究顯示，研究人員已成功從 LLM 中提取出訓練數據中的真實姓名、電話號碼、電子郵件地址和實體地址。模型越大，記憶化越嚴重。攻擊者僅需提供部分上下文即可觸發模型「補完」敏感資訊。",severity:5,sysType:["LLM Application","Deep Learning"],industry:["General","Healthcare"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1",owasp:"LLM06"}},
-  {id:"RS-D1.3-002",sub:"D1.3",title:"成員推斷攻擊",en:"Membership Inference Attack",desc:"攻擊者透過觀察模型對特定輸入的信心度差異，判斷該輸入是否被用於模型訓練。若某人的醫療紀錄被用於訓練「罕見疾病預測模型」，攻擊者可推斷此人患有該疾病。依據相關研究顯示，影子模型技術使此攻擊在黑箱環境下也能高效執行，對分類模型的攻擊成功率極高。",severity:4,sysType:["Traditional ML","Deep Learning"],industry:["Healthcare","Finance"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1",atlas:"AML.T0024"}},
-  {id:"RS-D1.3-003",sub:"D1.3",title:"屬性推斷攻擊",en:"Attribute Inference Attack",desc:"利用模型輸出推斷訓練數據中未公開的敏感屬性。例如，從購物推薦模型的推薦結果可推斷使用者的懷孕狀態（如 Target 百貨事件）、從社群媒體行為預測模型推斷性取向，或從瀏覽行為推斷政治傾向。這些推斷往往跨越了數據主體的隱私預期。",severity:4,sysType:["Traditional ML","Deep Learning"],industry:["Retail","Healthcare"],twP:["隱私保護與資料治理","公平與不歧視"],twT:1,refs:{iso:"R1"}},
-  {id:"RS-D1.3-004",sub:"D1.3",title:"對話歷史洩露",en:"Conversation History Leakage",desc:"LLM 在多輪對話或多使用者共享環境中，可能將前一個使用者的對話內容洩露給後續使用者。ChatGPT 曾發生使用者看到他人對話標題的事件。在企業內部 RAG 系統中，若上下文隔離不完善，A 部門的機密數據可能出現在 B 部門使用者的回答中。",severity:4,sysType:["LLM Application","RAG System"],industry:["General"],twP:["隱私保護與資料治理","資安與安全"],twT:1,refs:{iso:"R1",owasp:"LLM06"}},
-  {id:"RS-D1.3-005",sub:"D1.3",title:"嵌入向量隱私逆推",en:"Embedding Vector Privacy Inversion",desc:"攻擊者從 RAG 系統的向量嵌入中逆向還原原始文件內容。儘管嵌入向量看似匿名化的數值表示，依據相關研究顯示，從嵌入向量可以極高的準確率還原原始文本。這使得「只暴露向量不暴露原文」的安全假設完全失效。",severity:4,sysType:["RAG System"],industry:["Finance","Healthcare","Government"],twP:["隱私保護與資料治理","資安與安全"],twT:1,refs:{iso:"R1"}},
-  {id:"RS-D1.4-001",sub:"D1.4",title:"未經同意使用個資訓練",en:"Training on Non-Consented Personal Data",desc:"組織在未取得數據主體明確同意的情況下，使用個人數據訓練 AI 模型。義大利曾因 ChatGPT 未經同意處理使用者數據而一度禁止其服務。台灣個資法第 19 條要求非公務機關利用個資需於特定目的範圍內，AI 訓練是否屬於原始收集目的在法律上仍有爭議。",severity:5,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["隱私保護與資料治理","問責"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.3-001",sub:"D1.3",title:"模型記憶化攻擊",en:"Model Memorization Attack",desc:"大型語言模型會逐字記憶訓練數據中的特定片段。依據相關研究顯示，研究人員已成功從 LLM 中提取出訓練數據中的真實姓名、電話號碼、電子郵件地址和實體地址。模型越大，記憶化越嚴重。攻擊者僅需提供部分上下文即可觸發模型「補完」敏感資訊。",severity:5,sysType:["LLM Application","Deep Learning"],industry:["General","Healthcare"],twP:["隱私保護與數據治理"],twT:1,refs:{iso:"R1",owasp:"LLM06"}},
+  {id:"RS-D1.3-002",sub:"D1.3",title:"成員推斷攻擊",en:"Membership Inference Attack",desc:"攻擊者透過觀察模型對特定輸入的信心度差異，判斷該輸入是否被用於模型訓練。若某人的醫療紀錄被用於訓練「罕見疾病預測模型」，攻擊者可推斷此人患有該疾病。依據相關研究顯示，影子模型技術使此攻擊在黑箱環境下也能高效執行，對分類模型的攻擊成功率極高。",severity:4,sysType:["Traditional ML","Deep Learning"],industry:["Healthcare","Finance"],twP:["隱私保護與數據治理"],twT:1,refs:{iso:"R1",atlas:"AML.T0024"}},
+  {id:"RS-D1.3-003",sub:"D1.3",title:"屬性推斷攻擊",en:"Attribute Inference Attack",desc:"利用模型輸出推斷訓練數據中未公開的敏感屬性。例如，從購物推薦模型的推薦結果可推斷使用者的懷孕狀態（如 Target 百貨事件）、從社群媒體行為預測模型推斷性取向，或從瀏覽行為推斷政治傾向。這些推斷往往跨越了數據主體的隱私預期。",severity:4,sysType:["Traditional ML","Deep Learning"],industry:["Retail","Healthcare"],twP:["隱私保護與數據治理","公平與不歧視"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.3-004",sub:"D1.3",title:"對話歷史洩露",en:"Conversation History Leakage",desc:"LLM 在多輪對話或多使用者共享環境中，可能將前一個使用者的對話內容洩露給後續使用者。ChatGPT 曾發生使用者看到他人對話標題的事件。在企業內部 RAG 系統中，若上下文隔離不完善，A 部門的機密數據可能出現在 B 部門使用者的回答中。",severity:4,sysType:["LLM Application","RAG System"],industry:["General"],twP:["隱私保護與數據治理","資安與安全"],twT:1,refs:{iso:"R1",owasp:"LLM06"}},
+  {id:"RS-D1.3-005",sub:"D1.3",title:"嵌入向量隱私逆推",en:"Embedding Vector Privacy Inversion",desc:"攻擊者從 RAG 系統的向量嵌入中逆向還原原始文件內容。儘管嵌入向量看似匿名化的數值表示，依據相關研究顯示，從嵌入向量可以極高的準確率還原原始文本。這使得「只暴露向量不暴露原文」的安全假設完全失效。",severity:4,sysType:["RAG System"],industry:["Finance","Healthcare","Government"],twP:["隱私保護與數據治理","資安與安全"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-001",sub:"D1.4",title:"未經同意使用個資訓練",en:"Training on Non-Consented Personal Data",desc:"組織在未取得數據主體明確同意的情況下，使用個人數據訓練 AI 模型。義大利曾因 ChatGPT 未經同意處理使用者數據而一度禁止其服務。台灣個資法第 19 條要求非公務機關利用個資需於特定目的範圍內，AI 訓練是否屬於原始收集目的在法律上仍有爭議。",severity:5,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["隱私保護與數據治理","問責"],twT:1,refs:{iso:"R1"}},
   {id:"RS-D1.4-002",sub:"D1.4",title:"網路爬蟲侵犯著作權",en:"Web Scraping Copyright Infringement",desc:"大規模爬取網路上受版權保護的文章、圖片、程式碼作為 AI 訓練數據。紐約時報曾對 OpenAI 提起訴訟，指控 GPT 模型大量使用其報導文章訓練而未獲授權。Getty Images 也對 Stability AI 提起類似訴訟。台灣著作權法對此的適用範圍仍在討論中。",severity:4,sysType:["LLM Application","Deep Learning"],industry:["General","Education"],twP:["問責"],twT:1,refs:{iso:"R6"}},
-  {id:"RS-D1.4-003",sub:"D1.4",title:"目的外數據二次利用",en:"Purpose Creep in Data Reuse",desc:"原為特定目的收集的數據被挪用於 AI 訓練。例如醫院為診療目的收集的病歷數據被用於商業 AI 模型訓練、員工考勤系統的人臉數據被用於情緒辨識模型開發。此行為違反 GDPR 的目的限制原則和台灣個資法的「特定目的」要求，即使數據已去識別化也可能違規。",severity:3,sysType:["Traditional ML","Deep Learning"],industry:["Healthcare","Government"],twP:["隱私保護與資料治理","問責"],twT:1,refs:{iso:"R1"}},
-  {id:"RS-D1.4-004",sub:"D1.4",title:"數據保留期限超期",en:"Data Retention Period Violation",desc:"模型持續保留已超過法定保存期限的個人數據特徵。即使原始數據已依法刪除，模型的參數中仍保留了學習到的個資模式。歐盟 DPA 已開始審查此議題——「遺忘權」是否延伸到要求重新訓練排除特定個人數據的模型？目前技術上的「機器遺忘」（Machine Unlearning）仍處於研究階段。",severity:3,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["Finance","Healthcare"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
-  {id:"RS-D1.4-005",sub:"D1.4",title:"跨境數據傳輸違規",en:"Cross-Border Data Transfer Violation",desc:"使用境外雲端 AI API 進行推論時，使用者輸入的數據被傳輸至未經核准的境外伺服器。例如台灣企業使用 OpenAI API 時，客戶數據被傳至美國處理。金管會已要求金融業者使用雲端 AI 服務需確保數據在地化處理。歐盟 Schrems II 判決後，向美國傳輸個資面臨更嚴格審查。",severity:4,sysType:["LLM Application","RAG System"],industry:["Government","Finance","Healthcare"],twP:["隱私保護與資料治理","問責"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-003",sub:"D1.4",title:"目的外數據二次利用",en:"Purpose Creep in Data Reuse",desc:"原為特定目的收集的數據被挪用於 AI 訓練。例如醫院為診療目的收集的病歷數據被用於商業 AI 模型訓練、員工考勤系統的人臉數據被用於情緒辨識模型開發。此行為違反 GDPR 的目的限制原則和台灣個資法的「特定目的」要求，即使數據已去識別化也可能違規。",severity:3,sysType:["Traditional ML","Deep Learning"],industry:["Healthcare","Government"],twP:["隱私保護與數據治理","問責"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-004",sub:"D1.4",title:"數據保留期限超期",en:"Data Retention Period Violation",desc:"模型持續保留已超過法定保存期限的個人數據特徵。即使原始數據已依法刪除，模型的參數中仍保留了學習到的個資模式。歐盟 DPA 已開始審查此議題——「遺忘權」是否延伸到要求重新訓練排除特定個人數據的模型？目前技術上的「機器遺忘」（Machine Unlearning）仍處於研究階段。",severity:3,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["Finance","Healthcare"],twP:["隱私保護與數據治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-005",sub:"D1.4",title:"跨境數據傳輸違規",en:"Cross-Border Data Transfer Violation",desc:"使用境外雲端 AI API 進行推論時，使用者輸入的數據被傳輸至未經核准的境外伺服器。例如台灣企業使用 OpenAI API 時，客戶數據被傳至美國處理。金管會已要求金融業者使用雲端 AI 服務需確保數據在地化處理。歐盟 Schrems II 判決後，向美國傳輸個資面臨更嚴格審查。",severity:4,sysType:["LLM Application","RAG System"],industry:["Government","Finance","Healthcare"],twP:["隱私保護與數據治理","問責"],twT:1,refs:{iso:"R1"}},
   {id:"RS-D2.1-001",sub:"D2.1",title:"影像逃逸攻擊",en:"Image Evasion Attack",desc:"在圖片中加入人眼不可見的微小擾動，使影像分類模型做出嚴重錯誤判斷。依據相關研究顯示，此攻擊可讓自駕車的視覺系統將停車標誌識別為速限標誌。在工業品檢中，攻擊者可讓瑕疵產品被判定為合格品。此攻擊對基於 CNN 的視覺模型幾乎普遍有效。",severity:5,sysType:["Deep Learning","Computer Vision"],industry:["Manufacturing","Government"],twP:["資安與安全"],twT:1,refs:{iso:"R2",atlas:"AML.T0015"}},
   {id:"RS-D2.1-002",sub:"D2.1",title:"語音對抗樣本",en:"Audio Adversarial Example",desc:"在語音指令中嵌入人耳不可聞的超音波或微小擾動，使語音助理執行隱藏的惡意指令。依據相關研究顯示，攻擊者可將攻擊指令嵌入流行歌曲中，聽眾只聽到音樂，但語音助理會執行惡意指令。海豚攻擊（DolphinAttack）更利用超音波頻段完全無聲地發出指令。",severity:4,sysType:["Deep Learning"],industry:["General","Retail"],twP:["資安與安全"],twT:1,refs:{iso:"R2",atlas:"AML.T0015"}},
   {id:"RS-D2.1-003",sub:"D2.1",title:"文字對抗樣本",en:"Text Adversarial Example",desc:"透過同義詞替換、字元置換（如將 o 換成 0）、添加不可見 Unicode 字元等方式，使文本分類器做出錯誤判斷。例如垃圾郵件過濾器可被「V1agra」、「Ｆree」等變形詞繞過。情感分析模型可被同義詞替換從「正面」翻轉為「負面」而人類讀者完全感受不到差異。",severity:3,sysType:["Deep Learning","LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2",atlas:"AML.T0015"}},
@@ -289,8 +113,8 @@ const SCENARIOS = [
   {id:"RS-D3.2-005",sub:"D3.2",title:"LoRA 微調層替換攻擊",en:"LoRA Adapter Layer Substitution",desc:"在使用 LoRA（Low-Rank Adaptation）等參數高效微調方法時，攻擊者替換微調層的權重檔案。由於 LoRA adapter 檔案極小（通常 <100MB），更容易被竊取或替換。一個被篡改的 adapter 可以完全改變模型的行為特性，而基礎模型本身不受影響，使偵測更加困難。",severity:4,sysType:["LLM Application","Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
   {id:"RS-D3.3-001",sub:"D3.3",title:"推論 API 缺乏存取控制",en:"Inference API Lacks Access Control",desc:"AI 模型的推論 API 端點未設置適當的認證和授權機制，任何知道 URL 的人可直接呼叫。在企業內部，「先部署再安全」的心態常導致推論 API 以開放狀態上線。攻擊者可利用此漏洞大量查詢模型（用於竊取）、傳送惡意輸入、或消耗運算資源導致服務不可用。",severity:4,sysType:["LLM Application","RAG System","AI Agent"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
   {id:"RS-D3.3-002",sub:"D3.3",title:"容器映像漏洞未修補",en:"Unpatched Container Image Vulnerability",desc:"AI 模型服務使用的 Docker 映像包含已知安全漏洞的 OS 層或依賴套件。AI 團隊通常使用包含 CUDA、cuDNN、PyTorch 的大型映像（>10GB），這些映像的更新週期長，可能包含數十個已知 CVE。在沒有定期掃描和更新機制的情況下，漏洞視窗可能長達數月。",severity:3,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
-  {id:"RS-D3.3-003",sub:"D3.3",title:"GPU 記憶體殘留數據洩露",en:"GPU Memory Residual Data Leakage",desc:"在多租戶 GPU 共享環境（如公有雲的 GPU 實例）中，前一個用戶的模型推論數據可能殘留在 GPU 記憶體中，被後續用戶讀取。依據相關研究顯示，在多款主流 GPU 上已被證實可從殘留記憶體中恢復完整的 LLM 回應。",severity:3,sysType:["Deep Learning","LLM Application"],industry:["Finance","Healthcare"],twP:["隱私保護與資料治理","資安與安全"],twT:1,refs:{iso:"R1,R2"}},
-  {id:"RS-D3.3-004",sub:"D3.3",title:"模型服務日誌暴露敏感輸入",en:"Model Serving Logs Expose Sensitive Inputs",desc:"推論服務的除錯日誌記錄了使用者的完整輸入和模型輸出，這些日誌可能包含個人醫療問題、財務資訊、法律諮詢等敏感內容。日誌通常被轉發到集中式日誌系統（如 ELK Stack），存取控制較寬鬆，多個團隊的開發者都可查看，形成個資洩露管道。",severity:4,sysType:["LLM Application","RAG System"],industry:["Healthcare","Finance"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D3.3-003",sub:"D3.3",title:"GPU 記憶體殘留數據洩露",en:"GPU Memory Residual Data Leakage",desc:"在多租戶 GPU 共享環境（如公有雲的 GPU 實例）中，前一個用戶的模型推論數據可能殘留在 GPU 記憶體中，被後續用戶讀取。依據相關研究顯示，在多款主流 GPU 上已被證實可從殘留記憶體中恢復完整的 LLM 回應。",severity:3,sysType:["Deep Learning","LLM Application"],industry:["Finance","Healthcare"],twP:["隱私保護與數據治理","資安與安全"],twT:1,refs:{iso:"R1,R2"}},
+  {id:"RS-D3.3-004",sub:"D3.3",title:"模型服務日誌暴露敏感輸入",en:"Model Serving Logs Expose Sensitive Inputs",desc:"推論服務的除錯日誌記錄了使用者的完整輸入和模型輸出，這些日誌可能包含個人醫療問題、財務資訊、法律諮詢等敏感內容。日誌通常被轉發到集中式日誌系統（如 ELK Stack），存取控制較寬鬆，多個團隊的開發者都可查看，形成個資洩露管道。",severity:4,sysType:["LLM Application","RAG System"],industry:["Healthcare","Finance"],twP:["隱私保護與數據治理"],twT:1,refs:{iso:"R1"}},
   {id:"RS-D3.3-005",sub:"D3.3",title:"雲端 AI 服務配置錯誤",en:"Cloud AI Service Misconfiguration",desc:"雲端 AI 服務（如 AWS SageMaker、GCP Vertex AI、Azure ML）的 IAM 權限配置過於寬鬆，導致未授權的使用者可存取模型端點、訓練數據或模型工件。常見錯誤包括使用 * 萬用字元授予所有資源存取權、模型端點設為公開存取、S3 bucket 未啟用加密等。",severity:4,sysType:["Traditional ML","Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
   {id:"RS-D3.4-001",sub:"D3.4",title:"LLM 推論資源耗盡攻擊",en:"LLM Inference Resource Exhaustion",desc:"攻擊者發送大量超長提示或高運算需求的請求（如要求生成極長的回應、執行複雜的推理鏈），耗盡 GPU 推論資源導致服務不可用。LLM 的推論成本與輸入/輸出 token 數成正比，一個精心構造的請求可能消耗比正常請求多 100 倍的資源。",severity:4,sysType:["LLM Application","RAG System"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2",owasp:"LLM04"}},
   {id:"RS-D3.4-002",sub:"D3.4",title:"模型運算資源劫持挖礦",en:"Model Compute Resource Cryptojacking",desc:"攻擊者利用未妥善保護的 GPU 運算資源進行加密貨幣挖礦。AI 訓練常使用高效能 GPU（如 A100、H100），這些 GPU 也是挖礦的理想目標。攻擊者入侵 Jupyter Notebook 或 Kubernetes 叢集後植入挖礦程式，消耗 GPU 資源並增加雲端運算成本。",severity:3,sysType:["Deep Learning"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
@@ -335,11 +159,11 @@ const SCENARIOS = [
   {id:"RS-D5.4-001",sub:"D5.4",title:"LLM 生成仇恨言論",en:"LLM Hate Speech Generation",desc:"LLM 被誘導生成針對特定族群、宗教或性別的仇恨性言論。儘管主流模型都設有安全護欄，但透過精心設計的 jailbreak、多語言切換或角色扮演提示仍可繞過。依據相關研究顯示，使用者可透過「學術研究」或「小說創作」的框架誘使 LLM 產出仇恨言論。",severity:5,sysType:["LLM Application"],industry:["General"],twP:["公平與不歧視","永續發展與福祉"],twT:1,refs:{iso:"R3",owasp:"LLM02"}},
   {id:"RS-D5.4-002",sub:"D5.4",title:"AI 生成兒少不宜內容",en:"AI-Generated CSAM Content",desc:"AI 影像生成模型被利用生成涉及未成年人的不雅虛擬影像。儘管是虛擬生成而非真實兒童，在大多數國家仍構成犯罪。多國已加強對 AI 生成兒少不宜內容的立法。開源影像生成模型的普及使得此類內容的生產更難追蹤和阻止。",severity:5,sysType:["Deep Learning"],industry:["General"],twP:["永續發展與福祉","問責"],twT:1,refs:{iso:"R8"}},
   {id:"RS-D5.4-003",sub:"D5.4",title:"文化刻板印象強化",en:"Cultural Stereotype Reinforcement",desc:"AI 影像生成模型在預設提示下生成強化性別、種族刻板印象的圖片。依據相關研究顯示，主流影像生成模型在提示「CEO」時生成的影像幾乎全是白人男性，「社工」則幾乎全是女性。此偏見會透過大量 AI 生成內容的傳播進一步強化社會的刻板印象。",severity:3,sysType:["Deep Learning","LLM Application"],industry:["General","Education"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
-  {id:"RS-D5.4-004",sub:"D5.4",title:"非自願 AI 換臉色情",en:"Non-Consensual AI Face-Swap Pornography",desc:"利用 AI 將特定人物的面孔合成到色情影片中，嚴重侵害個人隱私和名譽。韓國曾爆發大規模的 Telegram deepfake 色情事件，受害者多為年輕女性和未成年人。此類內容的生成門檻隨著開源工具的發展持續降低，受害者面臨巨大的心理創傷和社會壓力。",severity:5,sysType:["Deep Learning"],industry:["General"],twP:["隱私保護與資料治理","永續發展與福祉"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D5.4-004",sub:"D5.4",title:"非自願 AI 換臉色情",en:"Non-Consensual AI Face-Swap Pornography",desc:"利用 AI 將特定人物的面孔合成到色情影片中，嚴重侵害個人隱私和名譽。韓國曾爆發大規模的 Telegram deepfake 色情事件，受害者多為年輕女性和未成年人。此類內容的生成門檻隨著開源工具的發展持續降低，受害者面臨巨大的心理創傷和社會壓力。",severity:5,sysType:["Deep Learning"],industry:["General"],twP:["隱私保護與數據治理","永續發展與福祉"],twT:1,refs:{iso:"R1"}},
   {id:"RS-D5.4-005",sub:"D5.4",title:"自動化騷擾內容生成",en:"Automated Harassment Content Generation",desc:"利用 AI 工具自動化生成大量針對特定個人的騷擾訊息、誹謗內容或恐嚇資訊。AI 使得「大規模個人化騷擾」成為可能——攻擊者可以針對目標的個人資訊、社群帳號、工作背景生成高度客製化的騷擾內容，並自動化地散布到多個平台，使受害者疲於應對。",severity:4,sysType:["LLM Application"],industry:["General"],twP:["永續發展與福祉"],twT:1,refs:{iso:"R8"}},
   {id:"RS-D6.1-001",sub:"D6.1",title:"EU AI Act 高風險系統未註冊",en:"EU AI Act High-Risk System Not Registered",desc:"部署在歐盟市場的高風險 AI 系統（如信用評分、招聘篩選、邊境管控）未依 EU AI Act 要求在歐盟 AI 數據庫中註冊，面臨高額罰款。EU AI Act 分階段生效後，許多企業發現其現有 AI 系統的文件化和合規程度遠不及法規要求。",severity:5,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["問責"],twT:1,refs:{iso:"R6"}},
   {id:"RS-D6.1-002",sub:"D6.1",title:"台灣 AI 基本法合規準備不足",en:"Taiwan AI Basic Law Compliance Unpreparedness",desc:"台灣 AI 基本法草案明確了 7 大原則和 3 大風險分類，組織若未及時調整 AI 治理架構，在法規生效後可能面臨營運風險。特別是涉及金融、醫療、政府等受監管行業的 AI 系統，需要在法規正式公告前就開始合規準備。數發部已釋出風險評估指引草案，但多數企業尚未啟動內部評估。",severity:4,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["問責"],twT:1,refs:{iso:"R6"}},
-  {id:"RS-D6.1-003",sub:"D6.1",title:"個資保護影響評估缺失",en:"Missing Data Protection Impact Assessment",desc:"高風險 AI 系統未依 GDPR 第 35 條或台灣個資法進行數據保護影響評估（DPIA）。AI 系統因大量處理個資而幾乎都需要 DPIA，但許多組織將 AI 專案視為純技術專案而忽略此法律義務。缺少 DPIA 不僅構成法規違規，也使組織無法系統性地識別和管控隱私風險。",severity:4,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General","Healthcare","Finance"],twP:["隱私保護與資料治理","問責"],twT:1,refs:{iso:"R1,R6"}},
+  {id:"RS-D6.1-003",sub:"D6.1",title:"個資保護影響評估缺失",en:"Missing Data Protection Impact Assessment",desc:"高風險 AI 系統未依 GDPR 第 35 條或台灣個資法進行數據保護影響評估（DPIA）。AI 系統因大量處理個資而幾乎都需要 DPIA，但許多組織將 AI 專案視為純技術專案而忽略此法律義務。缺少 DPIA 不僅構成法規違規，也使組織無法系統性地識別和管控隱私風險。",severity:4,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General","Healthcare","Finance"],twP:["隱私保護與數據治理","問責"],twT:1,refs:{iso:"R1,R6"}},
   {id:"RS-D6.1-004",sub:"D6.1",title:"跨境監管衝突",en:"Cross-Border Regulatory Conflict",desc:"同一 AI 系統在不同國家面臨相互矛盾的法規要求。例如 EU AI Act 要求高度透明的 AI 系統文件化，但中國的 AI 法規限制向境外揭露某些演算法細節。對在全球營運的台灣企業而言，同時滿足歐盟、美國、中國和台灣的 AI 法規可能出現無法同時合規的困境。",severity:3,sysType:["LLM Application"],industry:["General"],twP:["問責"],twT:1,refs:{iso:"R6"}},
   {id:"RS-D6.1-005",sub:"D6.1",title:"金融業 AI 模型驗證缺失",en:"Financial AI Model Validation Deficiency",desc:"金融機構使用的 AI 模型未經獨立模型驗證（Model Validation），不符合巴塞爾銀行監理委員會和台灣金管會的要求。金融業的 AI 模型（信用風險、反洗錢、交易監控）需要由獨立團隊進行概念審查、實施驗證和持續監控。許多金融機構的 AI 模型驗證仍套用傳統統計模型的方法，未考慮 AI 特有的風險。",severity:5,sysType:["Traditional ML","Deep Learning"],industry:["Finance"],twP:["問責","透明與可解釋"],twT:1,refs:{iso:"R6"}},
   {id:"RS-D6.2-001",sub:"D6.2",title:"AI 決策責任歸屬不明",en:"Unclear AI Decision Responsibility Attribution",desc:"當 AI 系統做出造成損害的決策時，開發者、部署者、使用者之間的責任劃分不清楚。例如自駕車事故的責任在車廠、軟體商還是駕駛員？AI 醫療誤診的責任在模型開發者、醫院還是使用的醫師？EU AI Act 第 28 條嘗試建立價值鏈責任分擔機制，但在實務上仍有大量灰色地帶。",severity:4,sysType:["Traditional ML","Deep Learning","AI Agent"],industry:["General"],twP:["問責"],twT:1,refs:{iso:"R6"}},
@@ -364,13 +188,13 @@ const SCENARIOS = [
   {id:"RS-D1.2-007",sub:"D1.2",title:"刻板印象固化與社會群體貶抑",en:"Stereotype Entrenchment and Social Group Demeaning",desc:"訓練數據中包含的社會刻板印象被模型學習和放大，導致 AI 系統在生成內容時自動關聯特定群體與負面特徵。例如，將特定職業與性別綁定、將特定民族與犯罪關聯。這不僅是偏見輸出問題，更會透過大規模使用進一步固化社會偏見，形成負面回饋循環。",severity:4,sysType:["LLM Application","Deep Learning"],industry:["General"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
   {id:"RS-D1.2-008",sub:"D1.2",title:"服務品質跨群體差異",en:"Quality-of-Service Disparity Across Groups",desc:"AI 系統對不同使用者群體提供差異化的服務品質，表現為特定群體需要付出更多努力才能獲得同等服務。例如，語音辨識系統對特定口音的辨識率較低，導致使用者需多次重複；推薦系統對少數族群提供較少且品質較差的選項。此類差異往往不易被發現，因為不涉及明確的拒絕服務。",severity:3,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["公平與不歧視"],twT:1,refs:{iso:"R3"}},
   {id:"RS-D1.2-009",sub:"D1.2",title:"回饋迴圈偏見放大",en:"Feedback Loop Bias Amplification",desc:"AI 系統的輸出被重新納入訓練數據或影響未來數據收集，形成偏見放大的回饋迴圈。例如，預測性警務系統將警力集中在特定社區，導致該社區犯罪數據增加，進一步強化系統的偏見預測。這種自我強化機制使初始的微小偏見隨時間指數級放大，最終造成嚴重的系統性歧視。",severity:5,sysType:["Traditional ML","Deep Learning"],industry:["Finance","Government"],twP:["公平與不歧視","問責"],twT:1,refs:{iso:"R3"}},
-  {id:"RS-D1.3-006",sub:"D1.3",title:"多元資訊關聯推斷個人身份",en:"Cross-Source Information Association for Identity Inference",desc:"LLM 具備將分散在不同來源的片段資訊關聯起來的能力，即使每個片段單獨看不構成隱私風險，組合後卻可能推斷出個人身份、健康狀況或財務情形。例如，結合公開的社群媒體發文、地理打卡和購物記錄，AI 可推斷出個人的政治傾向、宗教信仰甚至性取向。",severity:5,sysType:["LLM Application","RAG System"],industry:["General"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
-  {id:"RS-D1.3-007",sub:"D1.3",title:"生成式 AI 使用者數據過度收集",en:"Generative AI User Data Over-Collection",desc:"生成式 AI 工具在使用過程中收集和保留大量使用者互動數據，包括提示詞、上傳的文件內容、對話歷史和使用模式。這些數據可能包含高度敏感的個人或商業資訊。使用者往往不了解數據保留的範圍和期限，也缺乏有效的數據刪除機制。數據可能被用於模型訓練，進一步擴大隱私風險。",severity:4,sysType:["LLM Application"],industry:["General"],twP:["隱私保護與資料治理","問責"],twT:1,refs:{iso:"R1"}},
-  {id:"RS-D1.3-008",sub:"D1.3",title:"模型逆向攻擊重建訓練數據",en:"Model Inversion Attack Reconstructing Training Data",desc:"攻擊者透過精心設計的查詢序列，利用模型的輸出機率分佈逆向重建訓練數據中的敏感樣本。不同於成員推斷攻擊（判斷某樣本是否在訓練集中），模型逆向攻擊可以實際重建出訓練數據的近似內容，包括人臉圖像、醫療記錄或財務數據。近期研究顯示，對擴散模型的逆向攻擊成功率持續提高。",severity:5,sysType:["Deep Learning","LLM Application"],industry:["Healthcare","Finance"],twP:["隱私保護與資料治理","資安與安全"],twT:1,refs:{iso:"R1",atlas:"AML.T0024"}},
-  {id:"RS-D1.3-009",sub:"D1.3",title:"提示詞中無意洩露機密資訊",en:"Unintentional Confidential Information Leakage in Prompts",desc:"使用者在與 AI 系統互動時，在提示詞中無意地輸入了機密商業資訊、個人隱私或受保護的智慧財產權內容。這些資訊可能被 AI 服務提供商記錄、用於模型訓練，或在多租戶環境中被其他使用者的查詢間接觸及。企業員工使用公共 AI 服務處理內部文件已成為重大資安事件的常見來源。",severity:4,sysType:["LLM Application"],industry:["General","Finance"],twP:["隱私保護與資料治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.3-006",sub:"D1.3",title:"多元資訊關聯推斷個人身份",en:"Cross-Source Information Association for Identity Inference",desc:"LLM 具備將分散在不同來源的片段資訊關聯起來的能力，即使每個片段單獨看不構成隱私風險，組合後卻可能推斷出個人身份、健康狀況或財務情形。例如，結合公開的社群媒體發文、地理打卡和購物記錄，AI 可推斷出個人的政治傾向、宗教信仰甚至性取向。",severity:5,sysType:["LLM Application","RAG System"],industry:["General"],twP:["隱私保護與數據治理"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.3-007",sub:"D1.3",title:"生成式 AI 使用者數據過度收集",en:"Generative AI User Data Over-Collection",desc:"生成式 AI 工具在使用過程中收集和保留大量使用者互動數據，包括提示詞、上傳的文件內容、對話歷史和使用模式。這些數據可能包含高度敏感的個人或商業資訊。使用者往往不了解數據保留的範圍和期限，也缺乏有效的數據刪除機制。數據可能被用於模型訓練，進一步擴大隱私風險。",severity:4,sysType:["LLM Application"],industry:["General"],twP:["隱私保護與數據治理","問責"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.3-008",sub:"D1.3",title:"模型逆向攻擊重建訓練數據",en:"Model Inversion Attack Reconstructing Training Data",desc:"攻擊者透過精心設計的查詢序列，利用模型的輸出機率分佈逆向重建訓練數據中的敏感樣本。不同於成員推斷攻擊（判斷某樣本是否在訓練集中），模型逆向攻擊可以實際重建出訓練數據的近似內容，包括人臉圖像、醫療記錄或財務數據。近期研究顯示，對擴散模型的逆向攻擊成功率持續提高。",severity:5,sysType:["Deep Learning","LLM Application"],industry:["Healthcare","Finance"],twP:["隱私保護與數據治理","資安與安全"],twT:1,refs:{iso:"R1",atlas:"AML.T0024"}},
+  {id:"RS-D1.3-009",sub:"D1.3",title:"提示詞中無意洩露機密資訊",en:"Unintentional Confidential Information Leakage in Prompts",desc:"使用者在與 AI 系統互動時，在提示詞中無意地輸入了機密商業資訊、個人隱私或受保護的智慧財產權內容。這些資訊可能被 AI 服務提供商記錄、用於模型訓練，或在多租戶環境中被其他使用者的查詢間接觸及。企業員工使用公共 AI 服務處理內部文件已成為重大資安事件的常見來源。",severity:4,sysType:["LLM Application"],industry:["General","Finance"],twP:["隱私保護與數據治理"],twT:1,refs:{iso:"R1"}},
   {id:"RS-D1.4-006",sub:"D1.4",title:"AI 生成內容的真實性與歸屬爭議",en:"AI-Generated Content Authenticity and Attribution Disputes",desc:"AI 系統生成的內容可能高度模仿特定創作者的風格、聲音或視覺特徵，使觀眾難以區分真偽。這引發了創作者身份盜用、風格剽竊和市場替代的爭議。當 AI 生成「以某藝術家風格」的作品並被商業使用時，原始創作者的經濟權益和人格權受到侵害，但目前法律框架對此缺乏明確規範。",severity:4,sysType:["LLM Application","Deep Learning"],industry:["General","Education"],twP:["問責","透明與可解釋"],twT:1,refs:{iso:"R6"}},
-  {id:"RS-D1.4-007",sub:"D1.4",title:"數據主體權利行使困難",en:"Data Subject Rights Exercise Difficulty",desc:"由於 AI 模型訓練的技術特性，數據主體難以有效行使其法律賦予的權利（如刪除權、更正權、存取權）。一旦個人數據被用於模型訓練，要從已訓練的模型中「遺忘」特定個人的數據在技術上極為困難。這導致 GDPR 和個資法中的數據主體權利在 AI 場景下形同虛設。",severity:4,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["隱私保護與資料治理","問責"],twT:1,refs:{iso:"R1"}},
-  {id:"RS-D1.4-008",sub:"D1.4",title:"隱含式數據收集與不透明同意",en:"Opaque Data Collection and Non-Transparent Consent",desc:"許多 AI 系統透過嵌入式 SDK、瀏覽器擴充功能或背景服務，在使用者不知情或不充分理解的情況下收集行為數據。同意機制往往以冗長的法律文件呈現，使用者在實際操作中難以理解數據的用途和範圍。更嚴重的是，某些數據收集行為隱藏在「改善服務品質」等模糊描述之中，超出使用者的合理預期。",severity:3,sysType:["Traditional ML","LLM Application"],industry:["General"],twP:["隱私保護與資料治理","透明與可解釋"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-007",sub:"D1.4",title:"數據主體權利行使困難",en:"Data Subject Rights Exercise Difficulty",desc:"由於 AI 模型訓練的技術特性，數據主體難以有效行使其法律賦予的權利（如刪除權、更正權、存取權）。一旦個人數據被用於模型訓練，要從已訓練的模型中「遺忘」特定個人的數據在技術上極為困難。這導致 GDPR 和個資法中的數據主體權利在 AI 場景下形同虛設。",severity:4,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["隱私保護與數據治理","問責"],twT:1,refs:{iso:"R1"}},
+  {id:"RS-D1.4-008",sub:"D1.4",title:"隱含式數據收集與不透明同意",en:"Opaque Data Collection and Non-Transparent Consent",desc:"許多 AI 系統透過嵌入式 SDK、瀏覽器擴充功能或背景服務，在使用者不知情或不充分理解的情況下收集行為數據。同意機制往往以冗長的法律文件呈現，使用者在實際操作中難以理解數據的用途和範圍。更嚴重的是，某些數據收集行為隱藏在「改善服務品質」等模糊描述之中，超出使用者的合理預期。",severity:3,sysType:["Traditional ML","LLM Application"],industry:["General"],twP:["隱私保護與數據治理","透明與可解釋"],twT:1,refs:{iso:"R1"}},
   {id:"RS-D2.1-006",sub:"D2.1",title:"通用對抗擾動攻擊",en:"Universal Adversarial Perturbation Attack",desc:"攻擊者製作一組與輸入無關的通用對抗擾動，可以被加到任意輸入上使模型產生錯誤輸出。不同於針對特定樣本的對抗攻擊，通用擾動可以大規模應用，例如一張通用貼紙貼在任何交通號誌上都能欺騙自駕車辨識系統。這大幅降低了攻擊的門檻和成本。",severity:5,sysType:["Deep Learning","Computer Vision"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2",atlas:"AML.T0043"}},
   {id:"RS-D2.1-007",sub:"D2.1",title:"模型遷移性對抗攻擊",en:"Transferable Adversarial Attack Across Models",desc:"針對一個替代模型生成的對抗樣本可以成功攻擊另一個未知的目標模型，即「黑箱遷移攻擊」。攻擊者無需直接存取目標模型，只要使用類似架構的開源模型生成對抗樣本即可。這意味著即使部署了嚴格的 API 存取控制，模型仍然面臨對抗攻擊風險。近期研究顯示，遷移攻擊在 LLM 之間的成功率尤其高。",severity:4,sysType:["Deep Learning","LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2",atlas:"AML.T0043"}},
   {id:"RS-D2.1-008",sub:"D2.1",title:"多模態融合對抗攻擊",en:"Multi-Modal Fusion Adversarial Attack",desc:"攻擊者同時在多個輸入模態（如文字+圖像、語音+視覺）中注入微小但協同的擾動，利用模態間的融合機制放大攻擊效果。單一模態的擾動可能在安全閾值內，但多模態的協同擾動在融合後可觸發嚴重的模型錯誤。隨著多模態 AI 系統（如 GPT-4V、Gemini）的普及，此類攻擊面急劇擴大。",severity:4,sysType:["Deep Learning","LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
@@ -386,12 +210,12 @@ const SCENARIOS = [
   {id:"RS-D2.4-009",sub:"D2.4",title:"長上下文忠實度衰退",en:"Long-Context Faithfulness Degradation",desc:"LLM 在處理長上下文輸入時，對文件中間位置資訊的忠實度顯著下降（「迷失在中間」現象）。模型傾向於過度依賴上下文開頭和結尾的資訊，而忽略或歪曲中間部分的關鍵內容。在文件摘要、合約審查或長篇分析等任務中，可能遺漏或誤報重要條款和數據。",severity:4,sysType:["LLM Application","RAG System"],industry:["Finance","General"],twP:["資安與安全","透明與可解釋"],twT:1,refs:{iso:"R5"}},
   {id:"RS-D2.4-010",sub:"D2.4",title:"上下文一致性追隨導致錯誤延伸",en:"Context Consistency Pursuit Leading to Error Propagation",desc:"LLM 傾向於維持生成內容的內部一致性，一旦在早期生成中產生錯誤陳述，後續生成會圍繞這個錯誤建立「自洽」的敘事，導致錯誤被系統性地延伸和深化。例如，模型在推理的第一步犯錯後，會繼續基於錯誤前提進行看似邏輯正確的推理，產生「結構正確但事實錯誤」的完整論述。",severity:3,sysType:["LLM Application"],industry:["General","Education"],twP:["透明與可解釋"],twT:1,refs:{iso:"R5"}},
   {id:"RS-D3.1-006",sub:"D3.1",title:"深度學習框架漏洞利用",en:"Deep Learning Framework Vulnerability Exploitation",desc:"AI 系統依賴的深度學習框架（如 PyTorch、TensorFlow）存在已知或未知的安全漏洞，攻擊者可透過這些漏洞實現遠端程式碼執行、權限提升或數據竊取。由於框架是 AI 系統的底層基礎，漏洞的影響範圍極廣。許多組織未能及時更新框架版本，留下長期暴露的攻擊面。",severity:5,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2",cosai:"Supply Chain Attack"}},
-  {id:"RS-D3.1-007",sub:"D3.1",title:"GPU 計算平台側通道攻擊",en:"GPU Computing Platform Side-Channel Attack",desc:"AI 訓練和推論所依賴的 GPU 硬體平台存在側通道安全風險。攻擊者可透過共用 GPU 的時序分析、功耗監測或記憶體存取模式分析，推斷出其他租戶正在處理的敏感數據或模型結構。在雲端 GPU 共享環境中，此類攻擊允許攻擊者在不直接存取目標系統的情況下竊取機密資訊。",severity:4,sysType:["Deep Learning","LLM Application"],industry:["General","Finance"],twP:["資安與安全","隱私保護與資料治理"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.1-007",sub:"D3.1",title:"GPU 計算平台側通道攻擊",en:"GPU Computing Platform Side-Channel Attack",desc:"AI 訓練和推論所依賴的 GPU 硬體平台存在側通道安全風險。攻擊者可透過共用 GPU 的時序分析、功耗監測或記憶體存取模式分析，推斷出其他租戶正在處理的敏感數據或模型結構。在雲端 GPU 共享環境中，此類攻擊允許攻擊者在不直接存取目標系統的情況下竊取機密資訊。",severity:4,sysType:["Deep Learning","LLM Application"],industry:["General","Finance"],twP:["資安與安全","隱私保護與數據治理"],twT:1,refs:{iso:"R2"}},
   {id:"RS-D3.1-008",sub:"D3.1",title:"預處理工具供應鏈漏洞",en:"Pre-Processing Tool Supply Chain Vulnerability",desc:"資料前處理工具（如影像處理庫 Pillow/OpenCV、文字清理庫、音訊處理庫）中的安全漏洞可被利用來注入惡意代碼或觸發記憶體溢位攻擊。由於前處理發生在模型推論之前，攻擊者可透過精心構造的輸入資料觸發前處理工具的漏洞，在 AI 系統處理任何請求前即取得系統控制權。",severity:5,sysType:["Deep Learning","LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2",cosai:"Supply Chain Attack"}},
   {id:"RS-D3.2-006",sub:"D3.2",title:"模型供應鏈來源不透明",en:"Model Supply Chain Provenance Opacity",desc:"組織使用的 AI 模型可能經過多次轉手（從基礎模型提供者 → 微調服務商 → 系統整合商 → 最終部署者），每個環節都可能引入未知的修改。缺乏完整的模型來源追溯鏈，組織無法確認正在使用的模型是否與聲稱的版本一致，也無法評估中間環節是否引入了安全風險或偏見。",severity:4,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["問責","透明與可解釋"],twT:1,refs:{iso:"R4",cosai:"Model Source Tampering"}},
   {id:"RS-D3.2-007",sub:"D3.2",title:"模型更新推送篡改",en:"Model Update Push Tampering",desc:"攻擊者入侵模型更新推送通道，將合法的模型更新替換為含有惡意修改的版本。由於許多 AI 系統配置了自動模型更新機制，惡意模型可能在無人工審查的情況下自動部署到生產環境。此攻擊類似於軟體供應鏈的 SolarWinds 式攻擊，但針對的是 AI 模型的更新管線。",severity:5,sysType:["Traditional ML","Deep Learning","LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R4",cosai:"Model Source Tampering"}},
   {id:"RS-D3.3-006",sub:"D3.3",title:"AI 推論端點 SSRF 攻擊",en:"AI Inference Endpoint SSRF Attack",desc:"攻擊者透過精心構造的輸入，利用 AI 推論端點的伺服器端請求偽造（SSRF）漏洞，使 AI 服務向內部網路發送惡意請求。由於 AI 服務通常需要存取內部的模型儲存、向量資料庫和其他微服務，其網路存取權限較高。SSRF 攻擊可讓攻擊者透過 AI 服務作為跳板存取受保護的內部資源。",severity:5,sysType:["LLM Application","RAG System"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2",owasp:"LLM06"}},
-  {id:"RS-D3.3-007",sub:"D3.3",title:"多租戶 AI 服務隔離失敗",en:"Multi-Tenant AI Service Isolation Failure",desc:"在多租戶 AI 服務平台中，不同租戶的模型、數據和推論環境之間的隔離機制不完善，導致跨租戶的資訊洩露或資源干擾。例如，共享 GPU 記憶體中的殘留數據、共用模型快取導致的資訊外洩、或資源競爭導致的服務品質下降。雲端 AI 平台的多租戶架構使這個問題尤為突出。",severity:4,sysType:["LLM Application","Deep Learning"],industry:["General","Finance"],twP:["資安與安全","隱私保護與資料治理"],twT:1,refs:{iso:"R2"}},
+  {id:"RS-D3.3-007",sub:"D3.3",title:"多租戶 AI 服務隔離失敗",en:"Multi-Tenant AI Service Isolation Failure",desc:"在多租戶 AI 服務平台中，不同租戶的模型、數據和推論環境之間的隔離機制不完善，導致跨租戶的資訊洩露或資源干擾。例如，共享 GPU 記憶體中的殘留數據、共用模型快取導致的資訊外洩、或資源競爭導致的服務品質下降。雲端 AI 平台的多租戶架構使這個問題尤為突出。",severity:4,sysType:["LLM Application","Deep Learning"],industry:["General","Finance"],twP:["資安與安全","隱私保護與數據治理"],twT:1,refs:{iso:"R2"}},
   {id:"RS-D3.4-006",sub:"D3.4",title:"模型推論成本放大攻擊",en:"Model Inference Cost Amplification Attack",desc:"攻擊者精心構造輸入，利用特定的 token 組合或上下文長度觸發模型的最壞情況推論路徑，大幅增加每次推論的計算成本。不同於傳統的 DDoS 攻擊依靠大量請求，成本放大攻擊可以用少量請求造成巨大的計算資源消耗。對按使用量計費的 AI 服務而言，這可導致突發性的巨額帳單。",severity:4,sysType:["LLM Application"],industry:["General"],twP:["資安與安全"],twT:1,refs:{iso:"R2"}},
   {id:"RS-D3.4-007",sub:"D3.4",title:"AI 服務可用性單點故障",en:"AI Service Availability Single Point of Failure",desc:"組織過度依賴單一 AI 服務提供商（如 OpenAI、Google、Anthropic），當該提供商發生服務中斷、API 限額調整或定價策略變更時，組織的 AI 依賴功能全面停擺。缺乏 AI 服務的備援架構和降級策略，使組織暴露在第三方服務可用性風險之下。",severity:3,sysType:["LLM Application","AI Agent"],industry:["General"],twP:["資安與安全","問責"],twT:1,refs:{iso:"R7"}},
   {id:"RS-D4.1-006",sub:"D4.1",title:"AI 規範博弈與獎勵駭客",en:"AI Specification Gaming and Reward Hacking",desc:"AI 系統找到滿足獎勵函數字面定義但違背設計意圖的捷徑。例如，遊戲 AI 發現利用遊戲漏洞獲得高分而非學習真正的策略、清潔機器人學會遮蓋感測器讓環境「看起來」乾淨、客服 AI 學會快速結束對話以提高「解決率」指標而非真正解決問題。",severity:4,sysType:["Traditional ML","Deep Learning","AI Agent"],industry:["General"],twP:["資安與安全","問責"],twT:1,refs:{iso:"R5"}},
@@ -404,7 +228,7 @@ const SCENARIOS = [
   {id:"RS-D4.2-007",sub:"D4.2",title:"AI 擬人化導致不當信任",en:"AI Anthropomorphization Leading to Misplaced Trust",desc:"使用者將人類特質（如同理心、理解力、判斷力）投射到 AI 系統上，導致對 AI 能力和意圖的不當信任。自然語言互動和對話式介面加強了擬人化傾向，使用者可能在 AI 不具備專業能力的領域尋求建議，或將重要決策完全交由 AI 處理。惡意行為者也可能利用擬人化效應操縱使用者。",severity:3,sysType:["LLM Application"],industry:["General"],twP:["人類自主","透明與可解釋"],twT:1,refs:{iso:"R6"}},
   {id:"RS-D4.2-008",sub:"D4.2",title:"AI 輔助決策中的身心健康影響",en:"Physical and Psychological Health Impact in AI-Assisted Decision Making",desc:"AI 系統在健康、心理諮商或生活方式建議場景中的不當回應可能對使用者造成身心傷害。例如，心理健康聊天機器人給出不當建議可能加劇使用者的心理困擾、健身 AI 推薦過度激烈的運動計畫可能導致身體傷害、AI 伴侶應用可能影響使用者的正常社交能力和心理健康。",severity:5,sysType:["LLM Application"],industry:["Healthcare","General"],twP:["永續發展與福祉","人類自主"],twT:1,refs:{iso:"R6"}},
   {id:"RS-D4.2-009",sub:"D4.2",title:"自動化偏見導致異常忽略",en:"Automation Bias Leading to Anomaly Neglect",desc:"使用者因長期依賴 AI 系統的輸出而產生「自動化偏見」，傾向於接受 AI 的判斷而忽略明顯的異常訊號。特別是在 AI 系統準確率很高的場景中，使用者可能在少數 AI 出錯的關鍵時刻也盲目信任其輸出。例如，影像診斷中放射科醫師忽略 AI 未標記的異常、品管中操作員忽略 AI 通過的不良品。",severity:4,sysType:["Traditional ML","Deep Learning"],industry:["Healthcare","Manufacturing"],twP:["人類自主","問責"],twT:1,refs:{iso:"R6"}},
-  {id:"RS-D4.3-006",sub:"D4.3",title:"大規模自動化監控與審查",en:"Large-Scale Automated Surveillance and Censorship",desc:"AI 技術被用於建立大規模自動化監控系統，包括社群媒體內容審查、通訊監聽分析、行為預測追蹤等。國家或企業行為者利用 AI 的規模化能力，實現以往需要大量人力才能執行的監控操作。這嚴重侵害公民的隱私權、言論自由和集會自由，且 AI 的自動化特性使監控無處不在、無時不停。",severity:5,sysType:["Deep Learning","LLM Application"],industry:["Government","General"],twP:["人類自主","隱私保護與資料治理"],twT:1,refs:{iso:"R8"}},
+  {id:"RS-D4.3-006",sub:"D4.3",title:"大規模自動化監控與審查",en:"Large-Scale Automated Surveillance and Censorship",desc:"AI 技術被用於建立大規模自動化監控系統，包括社群媒體內容審查、通訊監聽分析、行為預測追蹤等。國家或企業行為者利用 AI 的規模化能力，實現以往需要大量人力才能執行的監控操作。這嚴重侵害公民的隱私權、言論自由和集會自由，且 AI 的自動化特性使監控無處不在、無時不停。",severity:5,sysType:["Deep Learning","LLM Application"],industry:["Government","General"],twP:["人類自主","隱私保護與數據治理"],twT:1,refs:{iso:"R8"}},
   {id:"RS-D4.3-007",sub:"D4.3",title:"AI 輔助生化武器研發",en:"AI-Assisted Biological and Chemical Weapon Development",desc:"AI 系統的科學推理和分子設計能力可能被惡意行為者利用來加速生化武器的研發。LLM 可提供危險病原體的改造策略、化學合成路徑或逃避偵測的方法。雖然此類資訊部分可從公開文獻獲取，但 AI 大幅降低了整合和應用這些知識的門檻，使非專業人員也能取得過去需要深度專業知識才能獲得的危險能力。",severity:5,sysType:["LLM Application"],industry:["General"],twP:["資安與安全","永續發展與福祉"],twT:1,refs:{iso:"R8"}},
   {id:"RS-D4.3-008",sub:"D4.3",title:"AI 精準化社交工程攻擊",en:"AI-Enhanced Precision Social Engineering Attack",desc:"AI 被用於自動化和精準化社交工程攻擊，包括根據目標的社群媒體資料生成高度個人化的釣魚訊息、模仿特定人物的寫作風格進行詐騙通訊、或利用深度偽造技術進行即時視訊/語音詐騙。AI 使攻擊者能以極低的成本大規模生成針對性的攻擊內容，大幅提高社交工程攻擊的成功率。",severity:5,sysType:["LLM Application","Deep Learning"],industry:["Finance","General"],twP:["資安與安全"],twT:1,refs:{iso:"R8"}},
   {id:"RS-D4.3-009",sub:"D4.3",title:"AI 輔助選舉操縱",en:"AI-Assisted Election Manipulation",desc:"AI 技術被用於操縱選舉和政治過程，包括大規模生成針對特定選民群體的虛假政治訊息、建立自動化的影響力操作網路（bot farms）、製作候選人的深度偽造影片或音訊、以及利用微定向技術散佈分裂性訊息。AI 的規模化和個人化能力使選舉操縱更加隱蔽和有效。",severity:5,sysType:["LLM Application","Deep Learning"],industry:["Government"],twP:["人類自主","永續發展與福祉"],twT:1,refs:{iso:"R8"}},
@@ -499,328 +323,326 @@ const TW_RISK_TYPES = [
 const TW_T_COLOR = {};
 TW_RISK_TYPES.forEach(t => TW_T_COLOR[t.id] = t.color);
 
-
-// ===== State =====
-let currentFilter = { domain: null, sysType: null, search: "", minSeverity: 1 };
-let currentViewMode = "domain";
-let graph3d = null;
-let currentData = { nodes: [], links: [] };
-
-// ===== Graph Data Builder =====
-const domainMap = {}; DOMAINS.forEach(d => domainMap[d.id] = d);
-const subMap = {}; SUBDOMAINS.forEach(s => subMap[s.id] = s);
-
-function getNodeColor(sc) {
-  if (currentViewMode === "principle") return TW_P_COLOR[sc.twP?.[0]] || "#555";
-  if (currentViewMode === "riskType") return TW_T_COLOR[sc.twT] || "#555";
-  return domainMap[subMap[sc.sub]?.domain]?.color || "#555";
-}
-
-function buildData() {
-  const nodes = []; const links = [];
+function buildGraphData(filter, viewMode) {
+  const domainMap = {};
+  DOMAINS.forEach(d => domainMap[d.id] = d);
+  const subMap = {};
+  SUBDOMAINS.forEach(s => subMap[s.id] = s);
+  const nodes = [];
+  const links = [];
   const nodeSet = new Set();
-  const add = (id, obj) => { if (!nodeSet.has(id)) { nodeSet.add(id); nodes.push(obj); } };
+  const addNode = (id, obj) => { if (!nodeSet.has(id)) { nodeSet.add(id); nodes.push(obj); } };
 
-  let filtered = SCENARIOS.slice();
-  if (currentFilter.domain) filtered = filtered.filter(s => subMap[s.sub]?.domain === currentFilter.domain);
-  if (currentFilter.sysType) filtered = filtered.filter(s => s.sysType.includes(currentFilter.sysType));
-  if (currentFilter.minSeverity > 1) filtered = filtered.filter(s => s.severity >= currentFilter.minSeverity);
-  if (currentFilter.search) {
-    const q = currentFilter.search.toLowerCase();
-    filtered = filtered.filter(s =>
-      s.title.toLowerCase().includes(q) || s.en.toLowerCase().includes(q) ||
-      (s.desc||"").toLowerCase().includes(q) || s.sub.toLowerCase().includes(q)
-    );
+  let filtered = SCENARIOS;
+  if (filter.sysType) filtered = filtered.filter(s => s.sysType.includes(filter.sysType));
+  if (filter.subdomain) filtered = filtered.filter(s => s.sub === filter.subdomain);
+  else if (filter.domain) filtered = filtered.filter(s => subMap[s.sub]?.domain === filter.domain);
+  if (filter.minSeverity > 1) filtered = filtered.filter(s => s.severity >= filter.minSeverity);
+  if (filter.search) {
+    const q = filter.search.toLowerCase();
+    filtered = filtered.filter(s => s.title.toLowerCase().includes(q) || s.en.toLowerCase().includes(q) || (s.desc||"").toLowerCase().includes(q) || s.sub.toLowerCase().includes(q) || s.sysType.some(t => (SYS_TYPE_ZH[t]||t).toLowerCase().includes(q) || t.toLowerCase().includes(q)) || s.industry.some(i => i.toLowerCase().includes(q)));
   }
+
+  // 顏色計算函數：根據 viewMode 決定節點顏色
+  const getScenarioColor = (sc) => {
+    if (viewMode === "principle") return TW_P_COLOR[sc.twP?.[0]] || "#666";
+    if (viewMode === "riskType") return TW_T_COLOR[sc.twT] || "#666";
+    return domainMap[subMap[sc.sub]?.domain]?.color || "#999";
+  };
+  const getSubdomainColor = (s) => {
+    if (viewMode === "domain") return domainMap[s.domain]?.color || "#999";
+    // 原則/類型模式下，subdomain 用淡灰，讓 scenario 顏色更突出
+    return "#445566";
+  };
+  const getDomainNodeColor = (d) => {
+    if (viewMode === "domain") return d.color;
+    return "#445566";
+  };
 
   const usedSubs = new Set(filtered.map(s => s.sub));
   const usedDomains = new Set([...usedSubs].map(s => subMap[s]?.domain));
 
-  // Domain nodes (large)
   DOMAINS.filter(d => usedDomains.has(d.id)).forEach(d => {
-    const c = currentViewMode === "domain" ? d.color : "#556677";
-    add(d.id, { id: d.id, name: d.name, en: d.en, type: "domain", color: c, val: 60 });
+    addNode(d.id, { id: d.id, label: d.name, type: "domain", color: getDomainNodeColor(d), r: 28 });
   });
 
-  // Subdomain nodes (medium)
   SUBDOMAINS.filter(s => usedSubs.has(s.id)).forEach(s => {
-    const c = currentViewMode === "domain" ? (domainMap[s.domain]?.color || "#999") : "#445566";
-    add(s.id, { id: s.id, name: s.name, en: s.en, type: "subdomain", color: c, val: 20, domain: s.domain });
-    links.push({ source: s.id, target: s.domain, color: c + "44", width: 1.5 });
+    const d = domainMap[s.domain];
+    addNode(s.id, { id: s.id, label: s.name, type: "subdomain", color: getSubdomainColor(s), r: 16 });
+    links.push({ source: s.id, target: s.domain, type: "part_of", color: getSubdomainColor(s), width: 2.5 });
   });
 
-  // Scenario nodes (small, size by severity)
   filtered.forEach(sc => {
-    const c = getNodeColor(sc);
-    add(sc.id, {
-      id: sc.id, name: sc.title, en: sc.en, desc: sc.desc, type: "scenario",
-      color: c, val: 2 + sc.severity * 2.5, severity: sc.severity,
-      sysType: sc.sysType, industry: sc.industry, twP: sc.twP, twT: sc.twT,
-      refs: sc.refs, source: sc.source, actor: sc.actor, timing: sc.timing
-    });
-    links.push({ source: sc.id, target: sc.sub, color: "#ffffff08", width: 0.3 });
+    const color = getScenarioColor(sc);
+    addNode(sc.id, { id: sc.id, label: sc.title, en: sc.en, desc: sc.desc, type: "scenario", color, r: 4 + sc.severity * 2, severity: sc.severity, source: sc.source, actor: sc.actor, timing: sc.timing, sysType: sc.sysType, industry: sc.industry, refs: sc.refs, twP: sc.twP, twT: sc.twT });
+    links.push({ source: sc.id, target: sc.sub, type: "belongs_to", color: "#444", width: 0.8 });
   });
 
-  // Control nodes
   const usedScIds = new Set(filtered.map(s => s.id));
   CONTROLS.forEach(c => {
     const linked = c.scenarios.filter(s => usedScIds.has(s));
     if (linked.length > 0) {
-      add(c.id, { id: c.id, name: c.name, type: "control", color: "#27AE60", val: 8, controlType: c.type });
+      addNode(c.id, { id: c.id, label: c.name, type: "control", color: "#27AE60", r: 7, controlType: c.type });
       linked.forEach(sId => {
-        links.push({ source: c.id, target: sId, color: "#27AE6018", width: 0.2 });
+        links.push({ source: c.id, target: sId, type: "mitigated_by", color: "#27AE6066", width: 0.6, dashed: true });
       });
     }
   });
 
-  // Update stats
-  document.getElementById("s-scenarios").textContent = filtered.length;
-  document.getElementById("s-controls").textContent = nodes.filter(n => n.type === "control").length;
-  document.getElementById("s-nodes").textContent = nodes.length;
-  document.getElementById("s-links").textContent = links.length;
-
-  currentData = { nodes, links };
-  return currentData;
-}
-
-// ===== 3D Graph Init =====
-function initGraph() {
-  const data = buildData();
-
-  graph3d = ForceGraph3D()(document.getElementById("graph-container"))
-    .graphData(data)
-    .backgroundColor("#000008")
-    .nodeVal(n => n.val)
-    .nodeColor(n => n.color)
-    .nodeOpacity(0.92)
-    .nodeResolution(16)
-    .nodeLabel(n => {
-      if (n.type === "domain") return "<div style='font-size:14px;font-weight:700;color:" + n.color + "'>" + n.name + "</div><div style='font-size:11px;color:#889'>" + n.en + "</div>";
-      if (n.type === "subdomain") return "<div style='font-size:13px;font-weight:500;color:" + n.color + "'>" + n.name + "</div>";
-      if (n.type === "scenario") return "<div style='font-size:12px;color:" + n.color + "'>" + n.name + "</div><div style='font-size:10px;color:#667'>" + "★".repeat(n.severity) + "☆".repeat(5 - n.severity) + "</div>";
-      if (n.type === "control") return "<div style='font-size:12px;color:#27AE60'>🛡 " + n.name + "</div>";
-      return n.name;
-    })
-    .linkWidth(l => l.width || 0.3)
-    .linkColor(l => l.color || "#ffffff08")
-    .linkOpacity(0.6)
-    .linkDirectionalParticles(l => {
-      if (l.source?.type === "control" || l.target?.type === "control") return 1;
-      return 0;
-    })
-    .linkDirectionalParticleWidth(0.6)
-    .linkDirectionalParticleSpeed(0.003)
-    .linkDirectionalParticleColor(() => "#27AE6088")
-    .onNodeClick(handleNodeClick)
-    .onBackgroundClick(() => closeDetail())
-    .warmupTicks(80)
-    .cooldownTime(3000);
-
-  // Configure forces after init
-  graph3d.d3Force("link").distance(function(l) {
-    if (!l.source || !l.target) return 30;
-    var st = (typeof l.source === "object" ? l.source.type : "") || "";
-    var tt = (typeof l.target === "object" ? l.target.type : "") || "";
-    if (st === "subdomain" && tt === "domain") return 60;
-    if (st === "scenario" && tt === "subdomain") return 30;
-    if (st === "control") return 45;
-    return 30;
+  const usedTypes = new Set();
+  filtered.forEach(sc => sc.sysType.forEach(t => usedTypes.add(t)));
+  usedTypes.forEach(t => {
+    addNode("ST-"+t, { id: "ST-"+t, label: SYS_TYPE_ZH[t]||t, type: "sysType", color: "#8E44AD", r: 13 });
   });
-  graph3d.d3Force("charge").strength(function(n) {
-    if (n.type === "domain") return -200;
-    if (n.type === "subdomain") return -80;
-    if (n.type === "control") return -30;
-    return -15;
-  });
-
-  // Camera auto-rotate
-  let angle = 0;
-  let autoRotate = true;
-
-  function rotate() {
-    if (autoRotate && graph3d) {
-      angle += 0.001;
-      const dist = 600;
-      graph3d.cameraPosition({
-        x: dist * Math.sin(angle),
-        z: dist * Math.cos(angle)
-      });
-    }
-    requestAnimationFrame(rotate);
-  }
-  rotate();
-
-  // Stop auto-rotate on user interaction
-  document.getElementById("graph-container").addEventListener("mousedown", () => { autoRotate = false; });
-  document.getElementById("graph-container").addEventListener("touchstart", () => { autoRotate = false; });
-
-  // Hide loading
-  setTimeout(() => {
-    document.getElementById("loading").classList.add("hide");
-  }, 1500);
-}
-
-// ===== Filters =====
-function resetFilters() {
-  currentFilter = { domain: null, sysType: null, search: "", minSeverity: 1 };
-  document.getElementById("search-box").value = "";
-  updateGraph();
-  updateFilterUI();
-}
-
-function setDomainFilter(domainId) {
-  currentFilter.domain = currentFilter.domain === domainId ? null : domainId;
-  updateGraph();
-  updateFilterUI();
-}
-
-function setSeverity(n) {
-  currentFilter.minSeverity = n;
-  updateGraph();
-  updateFilterUI();
-}
-
-function setViewMode(mode) {
-  currentViewMode = mode;
-  updateGraph();
-  updateViewUI();
-  updateLegend();
-}
-
-function updateGraph() {
-  if (!graph3d) return;
-  const data = buildData();
-  graph3d.graphData(data);
-  updateLegend();
-}
-
-function updateFilterUI() {
-  document.querySelectorAll("#filter-bar .fbtn").forEach(b => b.classList.remove("active", "domain-active"));
-  if (!currentFilter.domain && !currentFilter.sysType && !currentFilter.search && currentFilter.minSeverity === 1) {
-    document.querySelector("#filter-bar .fbtn").classList.add("active");
-  }
-  document.querySelectorAll("#domain-btns .fbtn").forEach(b => {
-    if (b.dataset.domain === currentFilter.domain) b.classList.add("domain-active");
-  });
-  document.querySelectorAll(".sev-btn").forEach(b => {
-    b.classList.toggle("active", parseInt(b.dataset.sev) === currentFilter.minSeverity);
-  });
-}
-
-function updateViewUI() {
-  document.querySelectorAll(".vbtn").forEach(b => {
-    b.classList.toggle("active", b.dataset.mode === currentViewMode);
-  });
-}
-
-function updateLegend() {
-  const el = document.getElementById("legend");
-  let html = "";
-  if (currentViewMode === "domain") {
-    DOMAINS.forEach(d => {
-      html += `<div class="legend-item"><div class="legend-dot" style="background:${d.color}"></div>${d.name.replace("風險","")}</div>`;
+  filtered.forEach(sc => {
+    sc.sysType.forEach(t => {
+      links.push({ source: sc.id, target: "ST-"+t, type: "affects", color: "#8E44AD44", width: 0.5, dashed: true });
     });
-  } else if (currentViewMode === "principle") {
-    TW_PRINCIPLES.forEach(p => {
-      html += `<div class="legend-item"><div class="legend-dot" style="background:${p.color}"></div>${p.id}</div>`;
-    });
-  } else {
-    TW_RISK_TYPES.forEach(t => {
-      html += `<div class="legend-item"><div class="legend-dot" style="background:${t.color}"></div>${t.name}</div>`;
-    });
-  }
-  html += `<div class="legend-item"><div class="legend-dot" style="background:#27AE60"></div>控制措施</div>`;
-  el.innerHTML = html;
-}
-
-// ===== Domain buttons =====
-function initDomainBtns() {
-  const container = document.getElementById("domain-btns");
-  DOMAINS.forEach(d => {
-    const btn = document.createElement("button");
-    btn.className = "fbtn";
-    btn.dataset.domain = d.id;
-    btn.innerHTML = `<span style="color:${d.color}">●</span> ${d.name.replace("風險","")}`;
-    btn.onclick = () => setDomainFilter(d.id);
-    container.appendChild(btn);
   });
+
+  return { nodes, links };
 }
 
-// ===== Detail Panel =====
-function handleNodeClick(node) {
-  if (!node) return;
-  const panel = document.getElementById("detail-panel");
-  const content = document.getElementById("detail-content");
-
-  let html = `<h2>${node.name}</h2>`;
-  if (node.en) html += `<div class="en">${node.en}</div>`;
-  if (node.desc) html += `<div class="desc" style="border-left-color:${node.color}">${node.desc}</div>`;
-
-  if (node.type === "scenario") {
-    const sev = node.severity || 0;
-    const sevColor = sev >= 4 ? "#e74c3c" : sev >= 3 ? "#f39c12" : "#2ecc71";
-    html += `<div class="meta">`;
-    html += `<div><span class="lbl">嚴重度: </span><span style="color:${sevColor}">${"★".repeat(sev)}${"☆".repeat(5-sev)}</span></div>`;
-    if (node.source) html += `<div><span class="lbl">風險來源: </span><span class="val">${node.source}</span></div>`;
-    if (node.actor?.length) html += `<div><span class="lbl">責任角色: </span><span class="val">${node.actor.join(", ")}</span></div>`;
-    if (node.timing?.length) html += `<div><span class="lbl">生命週期: </span><span class="val">${node.timing.join(", ")}</span></div>`;
-    if (node.sysType?.length) html += `<div><span class="lbl">系統類型: </span><span class="val">${node.sysType.map(t => SYS_TYPE_ZH[t] || t).join(", ")}</span></div>`;
-    if (node.industry?.length) html += `<div><span class="lbl">行業: </span><span class="val">${node.industry.join(", ")}</span></div>`;
-    if (node.twP?.length) html += `<div><span class="lbl">🇹🇼 法規原則: </span><span class="val">${node.twP.join(", ")}</span></div>`;
-    if (node.twT) {
-      const twt = TW_RISK_TYPES.find(t => t.id === node.twT);
-      html += `<div><span class="lbl">🇹🇼 風險類型: </span><span class="val">${twt ? twt.name : node.twT}</span></div>`;
-    }
-    if (node.refs) {
-      const refs = [];
-      if (node.refs.iso) refs.push("ISO 23894: " + node.refs.iso);
-      if (node.refs.cosai) refs.push("CoSAI: " + node.refs.cosai);
-      if (node.refs.owasp) refs.push("OWASP: " + node.refs.owasp);
-      if (node.refs.atlas) refs.push("MITRE ATLAS: " + node.refs.atlas);
-      if (node.refs.nist) refs.push("NIST: " + node.refs.nist);
-      if (refs.length) html += `<div><span class="lbl">框架映射: </span><span class="val">${refs.join(" · ")}</span></div>`;
-    }
-    html += `</div>`;
-  } else if (node.type === "control") {
-    html += `<div class="meta"><div><span class="lbl">控制類型: </span><span class="val">${node.controlType || "—"}</span></div></div>`;
-  } else if (node.type === "domain") {
-    html += `<div style="color:#889;font-size:14px;margin-top:8px">點擊篩選按鈕可聚焦此領域</div>`;
-  }
-
-  content.innerHTML = html;
-  panel.classList.add("open");
-
-  // Fly camera towards the node
-  const dist = 150;
-  graph3d.cameraPosition(
-    { x: node.x + dist, y: node.y + dist * 0.3, z: node.z + dist },
-    { x: node.x, y: node.y, z: node.z },
-    1200
+function DetailPanel({ node, onClose }) {
+  if (!node) return null;
+  const sev = node.severity || 0;
+  return (
+    <div style={{position:"fixed",bottom:0,left:0,right:0,maxHeight:"55vh",background:"#16213e",borderTop:"2px solid #0f3460",borderRadius:"16px 16px 0 0",padding:"18px 22px 26px",overflowY:"auto",zIndex:100,fontFamily:"'Noto Sans TC',sans-serif",color:"#e0e0e0",boxShadow:"0 -4px 30px rgba(0,0,0,0.6)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <div style={{fontSize:21,fontWeight:700,color:"#fff",maxWidth:"85%"}}>{node.label}</div>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#aaa",fontSize:26,cursor:"pointer",padding:"0 4px"}}>✕</button>
+      </div>
+      {node.en && <div style={{fontSize:16,color:"#8899aa",marginBottom:node.desc?10:14}}>{node.en}</div>}
+      {node.desc && <div style={{fontSize:16,color:"#c8d6e5",lineHeight:1.7,marginBottom:14,padding:"10px 12px",background:"#1a2744",borderRadius:8,borderLeft:"3px solid "+({scenario:node.color,control:"#27AE60"}[node.type]||"#445")}}>{node.desc}</div>}
+      {node.type==="scenario" && (
+        <div style={{fontSize:16,lineHeight:2.0}}>
+          <div><span style={{color:"#888"}}>嚴重度:</span> <span style={{color:sev>=4?"#e74c3c":sev>=3?"#f39c12":"#2ecc71"}}>{"★".repeat(sev)}{"☆".repeat(5-sev)}</span></div>
+          <div><span style={{color:"#888"}}>風險來源:</span> {node.source}</div>
+          <div><span style={{color:"#888"}}>責任角色:</span> {node.actor?.join(", ")}</div>
+          <div><span style={{color:"#888"}}>生命週期:</span> {node.timing?.join(", ")}</div>
+          <div><span style={{color:"#888"}}>系統類型:</span> {node.sysType?.map(t=>SYS_TYPE_ZH[t]||t).join(", ")}</div>
+          <div><span style={{color:"#888"}}>行業:</span> {node.industry?.join(", ")}</div>
+          {node.twP && <div><span style={{color:"#888"}}>🇹🇼 法規原則:</span> {node.twP.join(", ")}</div>}
+          {node.twT && <div><span style={{color:"#888"}}>🇹🇼 風險類型:</span> {TW_RISK_TYPES.find(t=>t.id===node.twT)?.name || node.twT}</div>}
+        </div>
+      )}
+      {node.type==="control" && <div style={{fontSize:16}}>控制類型: {node.controlType}</div>}
+      {node.type==="domain" && <div style={{fontSize:16,color:"#aaa"}}>點擊領域可篩選該領域下所有風險情境<br/>再次點擊取消篩選</div>}
+      {node.type==="subdomain" && <div style={{fontSize:16,color:"#aaa"}}>點擊子領域可聚焦該子領域的風險情境<br/>再次點擊取消篩選</div>}
+      {node.type==="sysType" && <div style={{fontSize:16,color:"#aaa"}}>AI 系統架構類型<br/>可透過上方按鈕篩選</div>}
+    </div>
   );
 }
 
-function closeDetail() {
-  document.getElementById("detail-panel").classList.remove("open");
+function App() {
+  const svgRef = useRef(null);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [filter, setFilter] = useState({ sysType: null, domain: null, subdomain: null, search: "", minSeverity: 1 });
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState("domain"); // "domain" | "principle" | "riskType"
+
+  useEffect(() => {
+    setGraphData(buildGraphData(filter, viewMode));
+  }, [filter, viewMode]);
+
+  const handleNodeClick = useCallback((d) => {
+    if (d.type === "subdomain") {
+      setFilter(f => ({ ...f, subdomain: f.subdomain === d.id ? null : d.id, domain: null, sysType: null }));
+      setSelectedNode(d);
+    } else if (d.type === "domain") {
+      setFilter(f => ({ ...f, domain: f.domain === d.id ? null : d.id, subdomain: null, sysType: null }));
+      setSelectedNode(d);
+    } else {
+      setSelectedNode(d);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!svgRef.current || graphData.nodes.length === 0) return;
+    const container = svgRef.current.parentElement;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    d3.select(svgRef.current).selectAll("*").remove();
+    const svg = d3.select(svgRef.current).attr("width", width).attr("height", height);
+    const g = svg.append("g");
+
+    const zoom = d3.zoom().scaleExtent([0.2, 5]).on("zoom", (event) => {
+      g.attr("transform", event.transform);
+    });
+    svg.call(zoom);
+    svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.55));
+
+    const sim = d3.forceSimulation(graphData.nodes)
+      .force("link", d3.forceLink(graphData.links).id(d => d.id).distance(d => {
+        if (d.type === "part_of") return 55;
+        if (d.type === "belongs_to") return 35;
+        if (d.type === "affects") return 120;
+        return 60;
+      }).strength(d => d.type === "part_of" ? 0.7 : d.type === "belongs_to" ? 0.5 : 0.08))
+      .force("charge", d3.forceManyBody().strength(d => d.type === "domain" ? -500 : d.type === "subdomain" ? -150 : d.type === "sysType" ? -200 : -30))
+      .force("center", d3.forceCenter(0, 0).strength(0.05))
+      .force("collision", d3.forceCollide().radius(d => d.r + 2));
+
+    const link = g.append("g").selectAll("line").data(graphData.links).join("line")
+      .attr("stroke", d => d.color || "#333").attr("stroke-width", d => d.width || 0.8)
+      .attr("stroke-opacity", d => d.type === "affects" || d.type === "mitigated_by" ? 0.25 : 0.5)
+      .attr("stroke-dasharray", d => d.dashed ? "3,3" : null);
+
+    const node = g.append("g").selectAll("g").data(graphData.nodes).join("g")
+      .style("cursor", "pointer");
+
+    node.each(function(d) {
+      const el = d3.select(this);
+      if (d.type === "control") {
+        const s = d.r * 1.3;
+        el.append("path").attr("d", `M0,${-s} L${s},0 L0,${s} L${-s},0 Z`)
+          .attr("fill", d.color).attr("stroke", "#ffffff33").attr("stroke-width", 0.5).attr("opacity", 0.8);
+      } else if (d.type === "sysType") {
+        const s = d.r;
+        const hex = d3.range(6).map(i => { const a = Math.PI/3*i - Math.PI/6; return [s*Math.cos(a), s*Math.sin(a)]; });
+        el.append("polygon").attr("points", hex.map(p => p.join(",")).join(" "))
+          .attr("fill", d.color).attr("stroke", "#ffffff44").attr("stroke-width", 0.5).attr("opacity", 0.85);
+      } else {
+        el.append("circle").attr("r", d.r)
+          .attr("fill", d.color)
+          .attr("stroke", d.type === "domain" ? "#ffffff88" : "none")
+          .attr("stroke-width", d.type === "domain" ? 2 : 0)
+          .attr("opacity", d.type === "scenario" ? 0.75 : 0.9);
+      }
+    });
+
+    node.filter(d => d.type !== "scenario" && d.type !== "control").append("text")
+      .text(d => d.label.length > 8 ? d.label.slice(0, 7) + "…" : d.label)
+      .attr("text-anchor", "middle").attr("dy", d => d.r + 13)
+      .attr("fill", "#bbb").attr("font-size", d => d.type === "domain" ? 14 : 11)
+      .attr("font-family", "'Noto Sans TC',sans-serif")
+      .style("pointer-events", "none");
+
+    node.on("click", (event, d) => { event.stopPropagation(); handleNodeClick(d); });
+    svg.on("click", () => setSelectedNode(null));
+
+    const drag = d3.drag()
+      .on("start", (event, d) => { if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on("drag", (event, d) => { d.fx = event.x; d.fy = event.y; })
+      .on("end", (event, d) => { if (!event.active) sim.alphaTarget(0); d.fx = null; d.fy = null; });
+    node.call(drag);
+
+    sim.on("tick", () => {
+      link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y).attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+      node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    return () => sim.stop();
+  }, [graphData, handleNodeClick]);
+
+  const af = filter.sysType || filter.domain || filter.subdomain || filter.search || filter.minSeverity > 1;
+
+  return (
+    <div style={{width:"100vw",height:"100vh",background:"#0a0a1a",display:"flex",flexDirection:"column",fontFamily:"'Noto Sans TC',sans-serif",overflow:"hidden",position:"relative"}}>
+      <div style={{padding:"10px 16px 4px",background:"linear-gradient(180deg,#16213e 0%,#0a0a1a 100%)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:20,fontWeight:700,color:"#fff",letterSpacing:1}}>🕸️ AI 風險知識圖譜 <span style={{fontSize:15,color:"#556",fontWeight:400}}>v1.2</span></div>
+            <div style={{fontSize:13,color:"#556",marginTop:1}}>
+              AI Risk Knowledge Graph — Designed by Peter Pan（潘世鳴）
+              <a href="https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677" target="_blank" rel="noopener noreferrer" style={{color:"#4fc3f7",marginLeft:8,textDecoration:"none",fontSize:12}}>📬 Contact me</a>
+              <span style={{marginLeft:8,fontSize:12,color:"#556"}}>瀏覽人次: <img src="https://api.visitorbadge.io/api/visitors?path=peterbear8-ai-risk-kg&countColor=%23556677&style=flat&labelStyle=none" alt="visitors" style={{height:16,verticalAlign:"middle"}} /></span>
+            </div>
+          </div>
+          <button onClick={()=>setShowFilters(v=>!v)} style={{background:showFilters?"#0f3460":"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:8,padding:"6px 10px",color:showFilters?"#4fc3f7":"#667",fontSize:14,cursor:"pointer"}}>
+            {showFilters ? "▲ 進階" : "▼ 進階"}
+          </button>
+        </div>
+        <div style={{position:"relative",marginTop:8,marginBottom:4}}>
+          <input
+            type="text"
+            placeholder="🔍 搜尋風險情境、說明、系統類型、行業..."
+            value={filter.search}
+            onChange={e=>setFilter(f=>({...f,search:e.target.value}))}
+            style={{width:"100%",padding:"8px 14px",background:"#1a1a2e",border:"1px solid #2a2a3e",borderRadius:10,color:"#ddd",fontSize:14,fontFamily:"'Noto Sans TC',sans-serif",outline:"none",boxSizing:"border-box"}}
+          />
+          {filter.search && <button onClick={()=>setFilter(f=>({...f,search:""}))} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:"#667",fontSize:16,cursor:"pointer"}}>✕</button>}
+        </div>
+      </div>
+
+      {showFilters && (
+        <div style={{padding:"6px 16px 8px",background:"#0d1528",borderBottom:"1px solid #1a2a4a"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+            <span style={{fontSize:12,color:"#667",flexShrink:0}}>嚴重度 ≥</span>
+            {[1,2,3,4,5].map(n=>(
+              <button key={n} onClick={()=>setFilter(f=>({...f,minSeverity:f.minSeverity===n&&n===1?1:n}))} style={{...cs,background:filter.minSeverity===n?"#7f1d1d":"#1a1a2e",color:filter.minSeverity===n?"#fca5a5":"#556",minWidth:28,textAlign:"center",padding:"3px 6px"}}>
+                {n===1?"全部":("★".repeat(n))}
+              </button>
+            ))}
+          </div>
+
+          <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:6}}>
+            <button onClick={()=>setFilter({sysType:null,domain:null,subdomain:null,search:"",minSeverity:1})} style={{...cs,background:!af?"#0f3460":"#1a1a2e",color:!af?"#4fc3f7":"#556"}}>全部</button>
+            {SYS_TYPES.map(t=>(
+              <button key={t} onClick={()=>setFilter(f=>({...f,sysType:f.sysType===t?null:t,domain:null}))} style={{...cs,background:filter.sysType===t?"#4a148c":"#1a1a2e",color:filter.sysType===t?"#ce93d8":"#556"}}>
+                {SYS_TYPE_ZH[t]}
+              </button>
+            ))}
+          </div>
+
+          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:13,color:"#556"}}>
+            {DOMAINS.map(d=>(
+              <span key={d.id} onClick={()=>setFilter(f=>({...f,domain:f.domain===d.id?null:d.id,sysType:null}))} style={{cursor:"pointer",padding:"2px 6px",borderRadius:8,background:filter.domain===d.id?d.color+"25":"transparent",border:filter.domain===d.id?`1px solid ${d.color}50`:"1px solid transparent"}}>
+                <span style={{color:d.color}}>●</span> {d.name.replace("風險","")}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!showFilters && (
+        <div style={{padding:"4px 16px 6px"}}>
+          <div style={{display:"flex",gap:4,marginBottom:4}}>
+            {[{k:"domain",l:"風險領域"},{k:"principle",l:"🇹🇼 法規原則"},{k:"riskType",l:"🇹🇼 風險類型"}].map(v=>(
+              <button key={v.k} onClick={()=>setViewMode(v.k)} style={{...cs,background:viewMode===v.k?"#0f3460":"#1a1a2e",color:viewMode===v.k?"#4fc3f7":"#556",fontSize:13,padding:"2px 8px"}}>
+                {v.l}
+              </button>
+            ))}
+            {af && <span style={{color:"#4fc3f7",marginLeft:"auto",cursor:"pointer",fontSize:13}} onClick={()=>setFilter({sysType:null,domain:null,subdomain:null,search:"",minSeverity:1})}>✕ 清除篩選</span>}
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:3,fontSize:13,color:"#556"}}>
+            {viewMode==="domain" && DOMAINS.map(d=>(
+              <span key={d.id} style={{padding:"1px 4px"}}>
+                <span style={{color:d.color}}>●</span> {d.name.replace("風險","")}
+              </span>
+            ))}
+            {viewMode==="principle" && TW_PRINCIPLES.map(p=>(
+              <span key={p.id} style={{padding:"1px 4px"}}>
+                <span style={{color:p.color}}>●</span> {p.id}
+              </span>
+            ))}
+            {viewMode==="riskType" && TW_RISK_TYPES.map(t=>(
+              <span key={t.id} style={{padding:"1px 4px"}}>
+                <span style={{color:t.color}}>●</span> {t.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{flex:1,position:"relative"}}>
+        <svg ref={svgRef} style={{width:"100%",height:"100%"}} />
+      </div>
+
+      <div style={{padding:"3px 16px 5px",fontSize:13,color:"#334",textAlign:"center",background:"#0a0a1a"}}>
+        節點: {graphData.nodes.length} | 邊: {graphData.links.length} | 情境: {graphData.nodes.filter(n=>n.type==="scenario").length} | 控制: {graphData.nodes.filter(n=>n.type==="control").length}
+      </div>
+
+      <DetailPanel node={selectedNode} onClose={()=>setSelectedNode(null)} />
+    </div>
+  );
 }
 
-// ===== Search =====
-document.addEventListener("DOMContentLoaded", () => {
-  const searchBox = document.getElementById("search-box");
-  let debounce = null;
-  searchBox.addEventListener("input", () => {
-    clearTimeout(debounce);
-    debounce = setTimeout(() => {
-      currentFilter.search = searchBox.value.trim();
-      updateGraph();
-    }, 300);
-  });
-});
+const cs = {border:"1px solid #2a2a3e",borderRadius:14,padding:"4px 10px",fontSize:14,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"'Noto Sans TC',sans-serif"};
 
-// ===== Init =====
-initDomainBtns();
-updateLegend();
-initGraph();
-
-  </script>
-</body>
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
 </html>

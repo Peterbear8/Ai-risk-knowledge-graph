@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI 風險知識圖譜 | AI Risk Knowledge Graph</title>
-    <meta name="description" content="209 個 AI 風險情境的互動式知識圖譜，涵蓋 6 大領域、24 子領域，支援多維度篩選與台灣法規視角切換。Designed by Peter Pan（潘世鳴）">
+    <meta name="description" content="209 個 AI 風險情境的互動式知識圖譜，涵蓋 6 大領域、24 子領域，支援多維度篩選與互動式探索。Designed by Peter Pan（潘世鳴）">
     <meta property="og:title" content="AI 風險知識圖譜 | AI Risk Knowledge Graph">
     <meta property="og:description" content="互動式 AI 風險知識圖譜 — 209 個風險情境、6 大領域、跨框架整合">
     <meta property="og:type" content="website">
@@ -3405,18 +3405,13 @@ function buildGraphData(filter, viewMode) {
 
   // 顏色計算函數：根據 viewMode 決定節點顏色
   const getScenarioColor = sc => {
-    if (viewMode === "principle") return TW_P_COLOR[sc.twP?.[0]] || "#666";
-    if (viewMode === "riskType") return TW_T_COLOR[sc.twT] || "#666";
     return domainMap[subMap[sc.sub]?.domain]?.color || "#999";
   };
   const getSubdomainColor = s => {
-    if (viewMode === "domain") return domainMap[s.domain]?.color || "#999";
-    // 原則/類型模式下，subdomain 用淡灰，讓 scenario 顏色更突出
-    return "#445566";
+    return domainMap[s.domain]?.color || "#999";
   };
   const getDomainNodeColor = d => {
-    if (viewMode === "domain") return d.color;
-    return "#445566";
+    return d.color;
   };
   const usedSubs = new Set(filtered.map(s => s.sub));
   const usedDomains = new Set([...usedSubs].map(s => subMap[s]?.domain));
@@ -3626,15 +3621,7 @@ function DetailPanel({
     style: {
       color: "#718096"
     }
-  }, "\u884C\u696D:"), " ", node.industry?.join(", ")), node.twP && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#718096"
-    }
-  }, "\uD83C\uDDF9\uD83C\uDDFC \u6CD5\u898F\u539F\u5247:"), " ", node.twP.join(", ")), node.twT && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#718096"
-    }
-  }, "\uD83C\uDDF9\uD83C\uDDFC \u98A8\u96AA\u985E\u578B:"), " ", TW_RISK_TYPES.find(t => t.id === node.twT)?.name || node.twT)), node.type === "control" && /*#__PURE__*/React.createElement("div", {
+  }, "\u884C\u696D:"), " ", node.industry?.join(", ")), node.type === "control" && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 16
     }
@@ -3670,7 +3657,13 @@ function App() {
     links: []
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState("domain"); // "domain" | "principle" | "riskType"
+  const [viewMode, setViewMode] = useState("domain");
+  const resetToHome = () => {
+    setFilter({ sysType: null, domain: null, subdomain: null, search: "", minSeverity: 1 });
+    setViewMode("domain");
+    setSelectedNode(null);
+  };
+  const isHome = !filter.sysType && !filter.domain && !filter.subdomain && !filter.search && filter.minSeverity === 1;
 
   useEffect(() => {
     setGraphData(buildGraphData(filter, viewMode));
@@ -3786,15 +3779,17 @@ function App() {
       fontSize: 20,
       fontWeight: 700,
       color: "#1a202c",
-      letterSpacing: 1
-    }
+      letterSpacing: 1,
+      cursor: "pointer"
+    },
+    onClick: resetToHome
   }, "\uD83D\uDD78\uFE0F AI \u98A8\u96AA\u77E5\u8B58\u5716\u8B5C ", /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 15,
       color: "#718096",
       fontWeight: 400
     }
-  }, "v1.2")), /*#__PURE__*/React.createElement("div", {
+  }, "v1.3")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
       color: "#718096",
@@ -4024,11 +4019,28 @@ function App() {
       alignItems: "center"
     }
   }, /*#__PURE__*/React.createElement("button", {
+    onClick: resetToHome,
+    style: {
+      ...cs,
+      background: isHome ? "#e8f0fe" : "#ffffff",
+      color: isHome ? "#1a73e8" : "#4a5568",
+      fontSize: 13,
+      padding: "2px 8px"
+    }
+  }, "\uD83C\uDFE0 \u9996\u9801"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 1,
+      height: 16,
+      background: "#e0e4e8",
+      margin: "0 2px",
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("button", {
     onClick: () => setViewMode("domain"),
     style: {
       ...cs,
-      background: viewMode === "domain" ? "#e8f0fe" : "#ffffff",
-      color: viewMode === "domain" ? "#1a73e8" : "#4a5568",
+      background: "#e8f0fe",
+      color: "#1a73e8",
       fontSize: 13,
       padding: "2px 8px"
     }
@@ -4053,63 +4065,7 @@ function App() {
     style: {
       color: d.color
     }
-  }, "\u25CF"), " ", d.name.replace("風險", ""))), /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: 1,
-      height: 16,
-      background: "#e0e4e8",
-      margin: "0 2px",
-      flexShrink: 0
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setViewMode("principle"),
-    style: {
-      ...cs,
-      background: viewMode === "principle" ? "#e8f0fe" : "#ffffff",
-      color: viewMode === "principle" ? "#1a73e8" : "#4a5568",
-      fontSize: 13,
-      padding: "2px 8px"
-    }
-  }, "\uD83C\uDDF9\uD83C\uDDFC \u6CD5\u898F\u539F\u5247"), viewMode === "principle" && TW_PRINCIPLES.map(p => /*#__PURE__*/React.createElement("span", {
-    key: p.id,
-    style: {
-      padding: "1px 4px",
-      fontSize: 12,
-      color: "#4a5568"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: p.color
-    }
-  }, "\u25CF"), " ", p.id)), /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: 1,
-      height: 16,
-      background: "#e0e4e8",
-      margin: "0 2px",
-      flexShrink: 0
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setViewMode("riskType"),
-    style: {
-      ...cs,
-      background: viewMode === "riskType" ? "#e8f0fe" : "#ffffff",
-      color: viewMode === "riskType" ? "#4fc3f7" : "#4a5568",
-      fontSize: 13,
-      padding: "2px 8px"
-    }
-  }, "\uD83C\uDDF9\uD83C\uDDFC \u98A8\u96AA\u985E\u578B"), viewMode === "riskType" && TW_RISK_TYPES.map(t => /*#__PURE__*/React.createElement("span", {
-    key: t.id,
-    style: {
-      padding: "1px 4px",
-      fontSize: 12,
-      color: "#4a5568"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: t.color
-    }
-  }, "\u25CF"), " ", t.name)), af && /*#__PURE__*/React.createElement("span", {
+  }, "\u25CF"), " ", d.name.replace("風險", ""))), af && /*#__PURE__*/React.createElement("span", {
     style: {
       color: "#1a73e8",
       marginLeft: "auto",
