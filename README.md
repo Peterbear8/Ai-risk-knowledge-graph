@@ -10,7 +10,9 @@
 
 🌐 [**3D 知識圖譜**](https://peterbear8.github.io/Ai-risk-knowledge-graph/3d.html)
 
-## 📊 圖譜規模（v1.2）
+## 📊 更版說明-圖譜規模（v1.3）
+
+由於**台灣數發部 AI 基本法框架**尚未完成，原先是自己整合看效果，但為了避免造成誤解，故1.3版刪除 🇹🇼 台灣法規整合相關顯示
 
 | 項目 | 數量 |
 |------|------|
@@ -53,13 +55,6 @@
 - **NIST AI RMF** — 框架映射
 - **CoSAI / MITRE ATLAS / OWASP LLM** — 跨框架對應
 
-## 🇹🇼 台灣法規整合
-
-整合台灣數發部 AI 基本法框架：
-
-- **7 大原則**：隱私保護與資料治理、資安與安全、公平與不歧視、透明與可解釋、人類自主、問責、永續發展與福祉
-- **3 大風險類型**：技術設計缺陷、部署操作與人機互動、社會結構與環境衝擊
-
 ## 📚 參考框架
 
 - ISO/IEC 42001（AI 管理系統）
@@ -76,6 +71,10 @@
 This work is led by Peter Pan. You can [connect with me on LinkedIn](https://www.linkedin.com/in/%E6%BD%98%E4%B8%96%E9%B3%B4shih-ming-pan-peter-b6671677).
 
 對 AI 風險管理、AI 治理或知識圖譜設計有興趣？歡迎聯繫洽談。
+
+##📚 致謝與免責聲明
+This work is a personal initiative led by Peter Pan. It is intended for informational and educational purposes only.
+這項工作是由Peter Pan的個人倡議。它僅用於資訊和教育目的。
 
 ## 📄 License
 
