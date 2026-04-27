@@ -529,8 +529,142 @@ body::before {
 .link.highlight{opacity:1;stroke-width:3;}
 .stage-lane{fill:none;stroke-dasharray:3,4;opacity:.2;}
 .stage-lane-label{font-family:var(--mono);font-size:14px;letter-spacing:2px;text-transform:uppercase;opacity:.7;}
+/* ──────────────────────────────────────
+   📱 手機版響應式（< 768px）
+   ────────────────────────────────────── */
+
+/* 桌面預設：手機下拉選單隱藏 */
+.mode-select{display:none;}
+
+@media (max-width: 767px) {
+  /* ── 全域字體微調 ── */
+  body{font-size:14px;}
+
+  /* ── topbar 第一層：縮小 brand ── */
+  .topbar-info{
+    height:auto;min-height:54px;padding:8px 12px;flex-wrap:wrap;gap:8px;
+  }
+  .brand-box{width:30px;height:30px;font-size:11px;}
+  .brand-name{font-size:15px;line-height:1.2;}
+  .brand-sub{font-size:10px;}
+  .view-counter{font-size:11px;}
+
+  /* Contact 按鈕在手機上隱藏文字,只留 icon */
+  .contact-btn{padding:6px 8px;}
+  .contact-btn span{display:none;}
+
+  /* ── topbar 第二層：mode-tabs 隱藏,改用 select ── */
+  .mode-tabs{display:none;}
+  .mode-select{
+    display:block;flex:1;min-width:0;
+    padding:8px 12px;border-radius:8px;
+    background:var(--s2);border:1px solid var(--border);
+    color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;
+    cursor:pointer;
+  }
+  .topbar-action{
+    height:auto;min-height:48px;padding:8px 12px;gap:8px;
+  }
+
+  /* ── 智能分析按鈕在手機上隱藏 ── */
+  .aibtn{display:none !important;}
+
+  /* helpbtn 縮小 */
+  .helpbtn{width:28px;height:28px;font-size:14px;flex-shrink:0;}
+
+  /* ── 主版面：3 欄 → 1 欄垂直堆疊 ── */
+  .main{
+    display:flex;flex-direction:column;
+    grid-template-columns:none;
+    height:auto;
+    overflow-y:auto;
+  }
+
+  /* 左側情境設定欄：變成上方摺疊區（精簡） */
+  .leftpanel{
+    width:100%;max-width:none;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+    padding:12px 14px;
+    flex-shrink:0;
+  }
+  /* 階段列表在手機上變成橫向 chip */
+  .stage-list{
+    display:flex;flex-direction:row;gap:6px;overflow-x:auto;
+    padding-bottom:6px;
+  }
+  .stage-card{
+    flex-shrink:0;min-width:auto;
+    padding:8px 10px;
+    font-size:11px;
+  }
+  .stage-card-num{font-size:14px;}
+  .stage-card-name{font-size:12px;}
+  .stage-card-count{font-size:10px;}
+
+  /* 情境介紹文字在手機上適度縮 */
+  .scene-headline{font-size:18px;line-height:1.3;}
+  .scene-context{font-size:12px;line-height:1.55;}
+
+  /* KPI 在手機上排成兩行 */
+  .kpi-grid{grid-template-columns:repeat(3, 1fr);gap:6px;}
+  .kpi-card{padding:8px 6px;}
+  .kpi-num{font-size:18px;}
+  .kpi-label{font-size:9px;}
+
+  /* ── 中央圖譜：佔滿,但限高 ── */
+  .center{
+    height:60vh;min-height:380px;max-height:60vh;
+    flex-shrink:0;
+  }
+  .overlay-title{font-size:18px;}
+  .overlay-sub{font-size:9px;letter-spacing:.8px;}
+
+  /* SVG node label 在手機上字體大一點才看得清 */
+  .node-label{font-size:11px;}
+  .node-id{font-size:10px;}
+
+  /* ── 右側 detail panel：手機上變成下方區塊 ── */
+  .rightpanel{
+    width:100%;max-width:none;
+    border-left:none;
+    border-top:1px solid var(--border);
+    padding:14px;
+    height:auto;min-height:120px;
+  }
+
+  /* 詳情卡片在手機上字體 */
+  .detail-card-h{font-size:14px;}
+  .detail-card-content{font-size:12px;}
+  .detail-meta-item{font-size:10px;}
+  .detail-fw-chip{font-size:10px;padding:2px 7px;}
+
+  /* tooltip 在手機上不顯示（觸控不需要） */
+  #tooltip{display:none !important;}
+
+  /* AI panel 不在手機上顯示（aibtn 已隱藏,但保險） */
+  #aiContent{display:none !important;}
+
+  /* 工具按鈕(右下角 reset/export/fit) */
+  .center-overlay-br{
+    bottom:8px;right:8px;
+    transform:scale(.85);transform-origin:bottom right;
+  }
+}
+
+/* ── 平板區間（768px ~ 1024px）── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .main{grid-template-columns:240px 1fr 280px;}
+  .brand-name{font-size:18px;}
+  .scene-headline{font-size:20px;}
+  .mode-tab{padding:6px 10px;font-size:13px;}
+  .aibtn{padding:6px 10px;}
+  .aibtn-text{display:none;}
+}
+
 </style>
 </head>
+
 <body>
 
 <!-- ── TOP BAR ── -->
@@ -563,6 +697,12 @@ body::before {
       <button class="mode-tab" data-preset="code-review">AI 程式碼審查</button>
       <button class="mode-tab" data-preset="fraud-detection">AI 詐騙偵測</button>
     </div>
+    <select class="mode-select" id="modeSelect" aria-label="選擇情境">
+      <option value="rag-generic" selected>🟦 通用企業 RAG</option>
+      <option value="agentic-cs">🤖 Agentic AI 客服</option>
+      <option value="code-review">💻 AI 程式碼審查</option>
+      <option value="fraud-detection">💳 AI 詐騙偵測</option>
+    </select>
     <div class="spacer"></div>
     <button class="aibtn" id="aiBtn" title="智能分析">
       <span class="aibtn-icon">✨</span>
@@ -1202,6 +1342,9 @@ function loadPreset(key) {
   document.querySelectorAll(".mode-tab").forEach(b => {
     b.classList.toggle("active", b.dataset.preset === key);
   });
+  // 同步手機版 select
+  const sel = document.getElementById("modeSelect");
+  if (sel && sel.value !== key) sel.value = key;
   document.getElementById("sceneHeadline").textContent = currentData.headline;
   document.getElementById("sceneContext").textContent = currentData.context;
   document.getElementById("kpiNodes").textContent = currentData.nodes.length;
@@ -1555,6 +1698,11 @@ function exportSVG() {
 document.querySelectorAll(".mode-tab").forEach(b => {
   b.addEventListener("click", () => loadPreset(b.dataset.preset));
 });
+// 手機版下拉選單事件
+const _modeSel = document.getElementById("modeSelect");
+if (_modeSel) {
+  _modeSel.addEventListener("change", (e) => loadPreset(e.target.value));
+}
 document.getElementById("helpBtn").addEventListener("click", toggleHelp);
 document.getElementById("btnReset").addEventListener("click", () => {
   selectedNode = null;
