@@ -1,4 +1,4 @@
-🕸️ AI 風險知識圖譜導航版 | AI Risk Navigator
+🕸️** AI 風險知識圖譜導航版 | AI Risk Navigator **
 
 探索式 AI 風險知識圖譜 — 209 個風險情境、4 大應用場景、5 階段資料流、跨框架整合
 
