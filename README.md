@@ -27,7 +27,7 @@
 </p>
 
 <p align="center">
-  <strong>Designed by Peter Pan（潘世鳴）</strong> ·  ISO 27001 / ISO 42001 / NIST CSF 主導稽核員課程 講師
+  <strong>Designed by Peter Pan（潘世鳴）</strong> 
 </p>
 
 ---
@@ -132,7 +132,7 @@
 
 ---
 
-## 🏗️ 分類體系：AIRT-TAXONOMY v7
+## 🏗️ 分類體系：
 
 | 領域 | 名稱 | 涵蓋範圍 |
 | :---: | :--- | :--- |
@@ -152,7 +152,7 @@
 - **拖曳與縮放** — D3 力導向圖譜，自由探索結構
 - **點擊節點** — 右側面板顯示完整風險詳情（描述、嚴重度、控制建議、框架對應）
 - **階段聚焦** — 點按左側階段卡片，圖譜依階段高亮
-- **情境切換** — 頂部 4 個情境 tab，秒切換至對應風險鏈路
+- **情境切換** — 頂部挑選展示 4 個情境 tab，秒切換至對應風險鏈路
 
 ### 🤖 智能分析（NLP 探索）
 
@@ -167,41 +167,6 @@
 - **localStorage 記憶** — 下次造訪自動套用上次選擇
 
 ---
-
-## 📐 多維度標註
-
-每個風險情境包含：
-
-| 維度 | 說明 |
-| :--- | :--- |
-| 🔥 **Severity** | 嚴重度 1（輕微）~ 4（致命）|
-| 🌐 **Risk Source** | 風險來源（人為內部 / 人為外部 / AI 系統 / 系統性）|
-| 👥 **Responsible AI Actor** | 責任角色（依 NIST AI RMF：Design / Development / Deployment / Operation & Monitoring / TEVV）|
-| 🔄 **Lifecycle Stage** | 生命週期階段（依 ISO 5338 / ISO 22989）|
-| 🏗️ **AI System Type** | 系統架構（8 種）|
-| 🏢 **Industry Context** | 行業情境 |
-| 🗺️ **Framework Mapping** | 跨框架對應（ISO / OWASP / MITRE ATLAS / CoSAI / 台灣 MODA）|
-| 🛡️ **Control Suggestion** | 對應控制措施建議 |
-
----
-
-## 🇹🇼 台灣法規整合
-
-> 整合台灣數發部（MODA）AI 基本法草案精神
-
-<details>
-<summary><b>7 大原則</b></summary>
-
-- 隱私保護與資料治理
-- 資安與安全
-- 公平與不歧視
-- 透明與可解釋
-- 人類自主
-- 問責
-- 永續發展與福祉
-
-</details>
-
 <details>
 <summary><b>3 大風險類型</b></summary>
 
@@ -210,23 +175,6 @@
 - 社會結構與環境衝擊
 
 </details>
-
----
-
-## 🛠️ 技術棧
-
-| 類別 | 技術 |
-| :--- | :--- |
-| 🧱 **核心** | Pure HTML + Vanilla JS（單檔 standalone）|
-| 📊 **視覺化** | D3.js v7（力導向圖譜）|
-| 🔤 **字體** | Cormorant Garamond + Noto Sans TC + DM Mono |
-| 🤖 **AI 整合** | Claude Sonnet 4 API（離線 fallback 內建）|
-| 🌓 **主題系統** | CSS Variables + `[data-theme]` 切換 |
-| 🚀 **部署** | GitHub Pages（純靜態，無需後端）|
-
-> 💡 **架構特色**：所有 209 筆風險與 4 個情境圖譜資料**內嵌於前端**，可完全離線使用。
-
----
 
 ## 📚 參考框架
 
@@ -246,53 +194,27 @@
 <td>
 
 **📋 治理框架**
-- NIST AI RMF 1.0
-- EU AI Act
-- MITRE ATLAS
+- ISO/IEC 22989 — AI 概念與術語
+- ISO/IEC 42001（AI 管理系統）
+- ISO/IEC 23894（AI 風險管理）
+- ISO/IEC 5338（AI 系統生命週期）
+- NIST AI RMF（AI 風險管理框架）
+- NIST CSF（網路安全管理框架）
+- CoSAI Risk Map（AI 安全風險地圖）
+- MITRE ATLAS（AI 對抗威脅）
+- AIDEFEND(開源人工智慧防禦框架)
 - OWASP LLM Top 10
-- CoSAI Risk Map
-
-</td>
-<td>
-
-**🇹🇼 本土法規**
-- 台灣 AI 基本法（草案）<br>數位發展部 MODA
 
 </td>
 </tr>
 </table>
 
----
-
-## 🎬 Demo 腳本建議
-
-> 適合用於培訓、研討會、企業內訓的 5 分鐘導覽
-
-```
-1. 開場（30 秒）
-   └─ 從「通用企業 RAG」介紹什麼是 AI 風險知識圖譜
-
-2. 階段聚焦（1 分鐘）
-   └─ 按 1~5 鍵逐階段展示風險分布
-
-3. 主角節點深入（1.5 分鐘）
-   └─ 點擊 RS-D1.1-004（RAG 知識庫投毒）等指標性風險
-
-4. 跨情境切換（1 分鐘）
-   └─ 切到 Agentic 客服、AI 程式碼審查、AI 詐騙偵測，展示風險差異
-
-5. 智能分析（1 分鐘）
-   └─ 點右上角「智能分析」，輸入觀眾自己的 AI 應用情境，現場匹配風險
-```
-
----
-
 ## 📅 版本演進
 
 | 版本 | 規模 | 重點 |
 | :---: | :--- | :--- |
-| **v1** | 120 風險 / 1 圖 / 靜態 | 初版分類與框架對應 |
-| **v7** | 209 風險 / 4 情境 / 互動 | 場景化敘事 + NLP + 主題切換 |
+| **v1.3** | 120 風險 / 1 圖 / 靜態 | 初版分類與框架對應 |
+| **v2.0** | 209 風險 / 4 情境 / 互動 | 場景化敘事 + NLP + 主題切換 |
 
 ---
 
@@ -303,7 +225,7 @@
 <td width="200" align="center" valign="middle">
   <br>
   <b>Peter Pan</b><br>
-  <em>潘世鳴</em><br>
+  <em>潘世鳴(Peter Pan)</em><br>
   <br>
   <a href="https://www.linkedin.com/in/peterpantw/">
     <img src="https://img.shields.io/badge/LinkedIn-Connect-0077b5?logo=linkedin&logoColor=white" alt="LinkedIn">
@@ -312,11 +234,7 @@
 </td>
 <td valign="middle">
 
-- AI 治理講師（ISO 42001 / 23894 / 42005 / 5338 / NIST AI RMF / EU AI Act / MITRE ATLAS / OWASP LLM Top 10）
-- 累計授課場次：50+ 場 ISO 42001 訓練課程
-- 專長：AI 治理 × 親手開發 × Vibe Coding 教學的三維交集
 - LinkedIn：[https://www.linkedin.com/in/peterpantw/](https://www.linkedin.com/in/peterpantw/)
-
 > *「我不只告訴你 AI 治理應該怎麼做，我自己用 AI 把工具做出來，並且能教你怎麼做。」*
 
 </td>
