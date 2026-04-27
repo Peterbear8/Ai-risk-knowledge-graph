@@ -1,89 +1,342 @@
-🕸️** AI 風險知識圖譜導航版 | AI Risk Navigator **
+<h1 align="center">🕸️ AI 風險知識圖譜導航版</h1>
+<h3 align="center">AI Risk Navigator</h3>
 
-探索式 AI 風險知識圖譜 — 209 個風險情境、4 大應用場景、5 階段資料流、跨框架整合
+<p align="center">
+  <em>探索式 AI 風險知識圖譜 — 209 個風險情境、4 大應用場景、5 階段資料流、跨框架整合</em>
+</p>
 
-Designed by Peter Pan（潘世鳴）
+<p align="center">
+  <a href="https://peterbear8.github.io/Ai-risk-knowledge-graph/">
+    <img src="https://img.shields.io/badge/🔗_Live_Demo-Open_Navigator-c24d2c?style=for-the-badge" alt="Live Demo">
+  </a>
+  <a href="https://www.linkedin.com/in/peterpantw/">
+    <img src="https://img.shields.io/badge/LinkedIn-Peter_Pan-0077b5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-3da639?style=for-the-badge" alt="License">
+  </a>
+</p>
 
-🔗 線上展示
-👉 點此開啟導航版
+<p align="center">
+  <img src="https://img.shields.io/badge/Risks-209-f85149" alt="Risks">
+  <img src="https://img.shields.io/badge/Scenarios-4-ff7b32" alt="Scenarios">
+  <img src="https://img.shields.io/badge/Domains-6-d4a72c" alt="Domains">
+  <img src="https://img.shields.io/badge/Frameworks-8+-a371f7" alt="Frameworks">
+  <img src="https://img.shields.io/badge/Tech-D3.js_v7-39c5bb" alt="D3.js">
+  <img src="https://img.shields.io/badge/Theme-Light_/_Dark-58a6ff" alt="Theme">
+</p>
 
-💡 為什麼要做這個？
-國際 AI 治理框架（ISO 42001、NIST AI RMF、EU AI Act、MITRE ATLAS、OWASP LLM Top 10、CoSAI）各自精彩，但對導入 AI 的企業來說：
+<p align="center">
+  <strong>Designed by Peter Pan（潘世鳴）</strong> · ISO 42001 / NIST AI RMF / EU AI Act 講師
+</p>
 
-看得到框架，看不到風險長相 — 條文太抽象、難以對應到實際場景
-看得到單點風險，看不到鏈路 — 一個風險如何觸發另一個？最終損害是什麼？
-看得到通用論述，看不到場景差異 — RAG 的風險和 Agentic AI 的風險根本不同
+---
 
-風險原本就不是靜態存在Excel或是檢查表內，而應該是動態存在於工作流程中。當Agentic AI 進入企業工作流程(Workflow)後，更加重AI風險識別的困難度。所以我發展互動式 AI 風險知識圖譜(繁體中文)
+## 📖 目錄
 
-這個導航版的目標：以「企業實際應用場景」為敘事主軸，把抽象的框架條文落實為可看、可探、可對話的風險知識圖譜。
+- [💡 為什麼要做這個？](#-為什麼要做這個)
+- [🔗 線上展示](#-線上展示)
+- [📊 圖譜規模](#-圖譜規模)
+- [🎯 4 大企業應用場景](#-4-大企業應用場景)
+- [🏗️ 分類體系：AIRT-TAXONOMY v7](#️-分類體系airt-taxonomy-v7)
+- [🔍 核心互動功能](#-核心互動功能)
+- [📐 多維度標註](#-多維度標註)
+- [🇹🇼 台灣法規整合](#-台灣法規整合)
+- [🛠️ 技術棧](#️-技術棧)
+- [📚 參考框架](#-參考框架)
+- [🎬 Demo 腳本建議](#-demo-腳本建議)
+- [📅 版本演進](#-版本演進)
+- [🤝 關於作者](#-關於作者)
+- [📄 License](#-license)
+- [🙏 致謝](#-致謝)
 
-📊 圖譜規模
-項目數量風險情境（合計）209應用場景4 大類資料流階段每場景 5 階段風險領域6 大領域（D1-D6）子領域24 個整合框架8+ 國際標準
+---
 
-🔍 核心互動功能
-圖譜瀏覽
+## 💡 為什麼要做這個？
 
-拖曳與縮放 — D3 力導向圖譜，自由探索結構
-點擊節點 — 右側面板顯示完整風險詳情（描述、嚴重度、控制建議、框架對應）
-階段聚焦 — 點按左側階段卡片，圖譜依階段高亮
-情境切換 — 頂部 4 個情境 tab，秒切換至對應風險鏈路
+國際 AI 治理框架（ISO 42001、NIST AI RMF、EU AI Act、MITRE ATLAS、OWASP LLM Top 10、CoSAI、台灣 AI 基本法）各自精彩，但對導入 AI 的企業來說：
 
-智能分析（NLP 探索）**為了安全議題，調整展示方式**
+- 🔍 **看得到框架，看不到風險長相** — 條文太抽象、難以對應到實際場景
+- 🔗 **看得到單點風險，看不到鏈路** — 一個風險如何觸發另一個？最終損害是什麼？
+- 🎯 **看得到通用論述，看不到場景差異** — RAG 的風險和 Agentic AI 的風險根本不同
 
-自然語言提問 — 描述你的 AI 應用情境（例：「銀行內部部署 RAG 員工查詢規章」）
-AI 即時匹配 — 從 209 筆風險中自動找出最相關的 5~6 個風險
-跨情境跳轉 — 結果中點任一風險，自動切換到對應情境並高亮節點
-離線示範模式 — 預設離線運作（關鍵字+語意 boost），不需任何 API Key
+> **這個導航版的目標**：以「**企業實際應用場景**」為敘事主軸，把抽象的框架條文落實為**可看、可探、可對話**的風險知識圖譜。
 
-主題切換
+---
 
-亮色 / 深色雙主題 — 點右上角 ☀ / ☾，支援系統偏好自動跟隨
-localStorage 記憶 — 下次造訪自動套用上次選擇
+## 🔗 線上展示
 
+> 👉 **[點此開啟導航版](https://peterbear8.github.io/Ai-risk-knowledge-graph/)**
 
-📐 多維度標註
+---
+
+## 📊 圖譜規模
+
+<table>
+  <thead>
+    <tr><th>項目</th><th align="right">數量</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>風險情境（合計）</td><td align="right"><b>209</b></td></tr>
+    <tr><td>應用場景</td><td align="right"><b>4 大類</b></td></tr>
+    <tr><td>資料流階段</td><td align="right"><b>每場景 5 階段</b></td></tr>
+    <tr><td>風險領域</td><td align="right"><b>6 大領域（D1-D6）</b></td></tr>
+    <tr><td>子領域</td><td align="right"><b>24</b></td></tr>
+    <tr><td>整合框架</td><td align="right"><b>8+ 國際標準</b></td></tr>
+  </tbody>
+</table>
+
+---
+
+## 🎯 4 大企業應用場景
+
+每個場景配有自己的 **5 階段資料流**與獨立的風險鏈路：
+
+<details open>
+<summary><b>🟦 通用企業 RAG</b></summary>
+
+| 階段 | 主要風險焦點 |
+| :--- | :--- |
+| 1️⃣ 資料輸入 → 2️⃣ 向量化儲存 → 3️⃣ 檢索 → 4️⃣ 輸出使用 → 5️⃣ 治理合規 | 知識庫投毒、PII 索引化、提示注入、幻覺、第三方責任邊界 |
+
+</details>
+
+<details>
+<summary><b>🤖 Agentic AI 客服</b></summary>
+
+| 階段 | 主要風險焦點 |
+| :--- | :--- |
+| 1️⃣ 意圖識別 → 2️⃣ 工具選擇 → 3️⃣ 動作執行 → 4️⃣ 結果驗證 → 5️⃣ 回覆生成 | 工具濫用、權限越界、責任歸屬、自主決策邊界 |
+
+</details>
+
+<details>
+<summary><b>💻 AI 程式碼審查</b></summary>
+
+| 階段 | 主要風險焦點 |
+| :--- | :--- |
+| 1️⃣ 程式碼輸入 → 2️⃣ 上下文檢索 → 3️⃣ 模式比對 → 4️⃣ 風險評分 → 5️⃣ 建議生成 | 智財外洩、漏洞模式漏判、授權合規、開發者過度依賴 |
+
+</details>
+
+<details>
+<summary><b>💳 AI 詐騙偵測</b></summary>
+
+| 階段 | 主要風險焦點 |
+| :--- | :--- |
+| 1️⃣ 交易進來 → 2️⃣ 特徵萃取 → 3️⃣ 模型評分 → 4️⃣ 人工複查 → 5️⃣ 警示出件 | 模型偏見、誤報癱瘓、漏報重大損失、可解釋性、監管通報 |
+
+</details>
+
+---
+
+## 🏗️ 分類體系：AIRT-TAXONOMY v7
+
+| 領域 | 名稱 | 涵蓋範圍 |
+| :---: | :--- | :--- |
+| **D1** | 資料與隱私風險 | 資料投毒、偏見、隱私洩露、未授權使用 |
+| **D2** | 模型安全風險 | 對抗攻擊、提示注入、模型竊取、幻覺 |
+| **D3** | 系統與基礎設施風險 | 供應鏈、來源篡改、部署環境、資源濫用 |
+| **D4** | 應用與互動風險 | 失控行為、過度依賴、輸出濫用、多智能體 |
+| **D5** | 公平與倫理風險 | 演算法歧視、透明度、人類自主性、有害內容 |
+| **D6** | 治理與合規風險 | 合規缺口、問責不足、社會衝擊、環境影響 |
+
+---
+
+## 🔍 核心互動功能
+
+### 🗺️ 圖譜瀏覽
+
+- **拖曳與縮放** — D3 力導向圖譜，自由探索結構
+- **點擊節點** — 右側面板顯示完整風險詳情（描述、嚴重度、控制建議、框架對應）
+- **階段聚焦** — 點按左側階段卡片，圖譜依階段高亮
+- **情境切換** — 頂部 4 個情境 tab，秒切換至對應風險鏈路
+
+### 🤖 智能分析（NLP 探索）
+
+- **自然語言提問** — 描述你的 AI 應用情境（例：「銀行內部部署 RAG 員工查詢規章」）
+- **AI 即時匹配** — 從 209 筆風險中自動找出最相關的 5~6 個風險
+- **跨情境跳轉** — 結果中點任一風險，自動切換到對應情境並高亮節點
+- **離線示範模式** — 預設離線運作（關鍵字+語意 boost），不需任何 API Key
+
+### 🌓 主題切換
+
+- **亮色 / 深色雙主題** — 點右上角 ☀ / ☾，支援系統偏好自動跟隨
+- **localStorage 記憶** — 下次造訪自動套用上次選擇
+
+---
+
+## 📐 多維度標註
+
 每個風險情境包含：
 
-Severity（嚴重度） — 1（輕微）~ 4（致命）
-Risk Source — 風險來源（人為內部 / 人為外部 / AI 系統 / 系統性）
-Responsible AI Actor — 責任角色（依 NIST AI RMF：Design / Development / Deployment / Operation & Monitoring / TEVV）
-Lifecycle Stage — 生命週期階段（依 ISO 5338 / ISO 22989）
-AI System Type — 系統架構（8 種）
-Industry Context — 行業情境
-Framework Mapping — 跨框架對應（ISO / OWASP / MITRE ATLAS / CoSAI / 台灣 MODA）
-Control Suggestion — 對應控制措施建議
+| 維度 | 說明 |
+| :--- | :--- |
+| 🔥 **Severity** | 嚴重度 1（輕微）~ 4（致命）|
+| 🌐 **Risk Source** | 風險來源（人為內部 / 人為外部 / AI 系統 / 系統性）|
+| 👥 **Responsible AI Actor** | 責任角色（依 NIST AI RMF：Design / Development / Deployment / Operation & Monitoring / TEVV）|
+| 🔄 **Lifecycle Stage** | 生命週期階段（依 ISO 5338 / ISO 22989）|
+| 🏗️ **AI System Type** | 系統架構（8 種）|
+| 🏢 **Industry Context** | 行業情境 |
+| 🗺️ **Framework Mapping** | 跨框架對應（ISO / OWASP / MITRE ATLAS / CoSAI / 台灣 MODA）|
+| 🛡️ **Control Suggestion** | 對應控制措施建議 |
 
-📚 參考框架
+---
+
+## 🇹🇼 台灣法規整合
+
+> 整合台灣數發部（MODA）AI 基本法草案精神
+
+<details>
+<summary><b>7 大原則</b></summary>
+
+- 隱私保護與資料治理
+- 資安與安全
+- 公平與不歧視
+- 透明與可解釋
+- 人類自主
+- 問責
+- 永續發展與福祉
+
+</details>
+
+<details>
+<summary><b>3 大風險類型</b></summary>
+
+- 技術設計缺陷
+- 部署操作與人機互動
+- 社會結構與環境衝擊
+
+</details>
+
+---
+
+## 🛠️ 技術棧
+
+| 類別 | 技術 |
+| :--- | :--- |
+| 🧱 **核心** | Pure HTML + Vanilla JS（單檔 standalone）|
+| 📊 **視覺化** | D3.js v7（力導向圖譜）|
+| 🔤 **字體** | Cormorant Garamond + Noto Sans TC + DM Mono |
+| 🤖 **AI 整合** | Claude Sonnet 4 API（離線 fallback 內建）|
+| 🌓 **主題系統** | CSS Variables + `[data-theme]` 切換 |
+| 🚀 **部署** | GitHub Pages（純靜態，無需後端）|
+
+> 💡 **架構特色**：所有 209 筆風險與 4 個情境圖譜資料**內嵌於前端**，可完全離線使用。
+
+---
+
+## 📚 參考框架
+
 本知識圖譜的風險條目與分類，整合自以下國際與本土框架：
-ISO/IEC 42001 — AI 管理系統
-ISO/IEC 23894 — AI 風險管理
-ISO/IEC 5338 — AI 系統生命週期
-ISO/IEC 22989 — AI 概念與術語（八階段生命週期模型）
-NIST AI RMF 1.0 — AI 風險管理框架
-NIST CSF（網路安全管理框架）
-MITRE ATLAS — AI 對抗威脅戰術
-OWASP LLM Top 10 — LLM 應用十大風險
-CoSAI Risk Map — Coalition for Secure AI 風險地圖
-AIDEFEND(開源人工智慧防禦框架)
 
-📅 版本演進
-版本規模重點v1120 風險 / 1 圖 / 靜態初版分類與框架對應v7209 風險 / 4 情境 / 互動場景化敘事 + NLP + 主題切換
+<table>
+<tr>
+<td>
 
-🤝 關於作者
-Peter Pan（潘世鳴）
-LinkedIn：peterpantw
+**🌐 國際標準**
+- ISO/IEC 42001 — AI 管理系統
+- ISO/IEC 23894 — AI 風險管理
+- ISO/IEC 5338 — AI 系統生命週期
+- ISO/IEC 22989 — AI 概念與術語
 
-「我不只告訴你 AI 治理應該怎麼做，我自己用 AI 把工具做出來，並且能教你怎麼做。」
+</td>
+<td>
 
-🙏 致謝
-本知識圖譜的 209 筆風險條目，整合自多個國際開源框架的論述與分類體系。感謝這些社群讓 AI 治理的知識公共化。
+**📋 治理框架**
+- NIST AI RMF 1.0
+- EU AI Act
+- MITRE ATLAS
+- OWASP LLM Top 10
+- CoSAI Risk Map
 
-##📚 致謝與免責聲明
-This work is a personal initiative led by Peter Pan. It is intended for informational and educational purposes only.
-這項工作是由Peter Pan的個人倡議。它僅用於資訊和教育目的。
+</td>
+<td>
+
+**🇹🇼 本土法規**
+- 台灣 AI 基本法（草案）<br>數位發展部 MODA
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🎬 Demo 腳本建議
+
+> 適合用於培訓、研討會、企業內訓的 5 分鐘導覽
+
+```
+1. 開場（30 秒）
+   └─ 從「通用企業 RAG」介紹什麼是 AI 風險知識圖譜
+
+2. 階段聚焦（1 分鐘）
+   └─ 按 1~5 鍵逐階段展示風險分布
+
+3. 主角節點深入（1.5 分鐘）
+   └─ 點擊 RS-D1.1-004（RAG 知識庫投毒）等指標性風險
+
+4. 跨情境切換（1 分鐘）
+   └─ 切到 Agentic 客服、AI 程式碼審查、AI 詐騙偵測，展示風險差異
+
+5. 智能分析（1 分鐘）
+   └─ 點右上角「智能分析」，輸入觀眾自己的 AI 應用情境，現場匹配風險
+```
+
+---
+
+## 📅 版本演進
+
+| 版本 | 規模 | 重點 |
+| :---: | :--- | :--- |
+| **v1** | 120 風險 / 1 圖 / 靜態 | 初版分類與框架對應 |
+| **v7** | 209 風險 / 4 情境 / 互動 | 場景化敘事 + NLP + 主題切換 |
+
+---
+
+## 🤝 關於作者
+
+<table>
+<tr>
+<td width="200" align="center" valign="middle">
+  <br>
+  <b>Peter Pan</b><br>
+  <em>潘世鳴</em><br>
+  <br>
+  <a href="https://www.linkedin.com/in/peterpantw/">
+    <img src="https://img.shields.io/badge/LinkedIn-Connect-0077b5?logo=linkedin&logoColor=white" alt="LinkedIn">
+  </a>
+  <br><br>
+</td>
+<td valign="middle">
+
+- AI 治理講師（ISO 42001 / 23894 / 42005 / 5338 / NIST AI RMF / EU AI Act / MITRE ATLAS / OWASP LLM Top 10）
+- 累計授課場次：50+ 場 ISO 42001 訓練課程
+- 專長：AI 治理 × 親手開發 × Vibe Coding 教學的三維交集
+- LinkedIn：[https://www.linkedin.com/in/peterpantw/](https://www.linkedin.com/in/peterpantw/)
+
+> *「我不只告訴你 AI 治理應該怎麼做，我自己用 AI 把工具做出來，並且能教你怎麼做。」*
+
+</td>
+</tr>
+</table>
+
+---
 
 ## 📄 License
+
+[![MIT](https://img.shields.io/badge/License-MIT-3da639?style=for-the-badge)](LICENSE)
+
 MIT License — 歡迎自由使用、修改、分享。引用時請保留作者標示。
 
-MIT
+---
+
+## 🙏 致謝
+
+> 本知識圖譜的 209 筆風險條目，整合自多個國際開源框架的論述與分類體系。感謝這些社群讓 AI 治理的知識公共化。
+
+---
+
+<p align="center">
+  <sub>Made with ☕ and a lot of curiosity by <a href="https://www.linkedin.com/in/peterpantw/">Peter Pan（潘世鳴）</a></sub>
+</p>
