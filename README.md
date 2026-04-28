@@ -194,10 +194,6 @@
 <td>
 
 **📋 治理框架**
-- ISO/IEC 22989 — AI 概念與術語
-- ISO/IEC 42001（AI 管理系統）
-- ISO/IEC 23894（AI 風險管理）
-- ISO/IEC 5338（AI 系統生命週期）
 - NIST AI RMF（AI 風險管理框架）
 - NIST CSF（網路安全管理框架）
 - CoSAI Risk Map（AI 安全風險地圖）
